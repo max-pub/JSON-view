@@ -5,12 +5,12 @@
 <script>
     class {
         async connectedCallback() {
-            new MutationObserver(()=>{this.$('iframe').hidden = this.hidden;}).observe(this, {attributes: true});
+            new MutationObserver(() => { this.$('iframe').hidden = this.hidden; }).observe(this, { attributes: true });
             // await import('./ext/json-view.js');
         }
         // set string(str){this.object = JSON.parse(str);}
         set value(data) {
-            if(typeof data != 'object') try{data = JSON.parse(data); } catch(e){}
+            if (typeof data != 'object') try { data = JSON.parse(data); } catch (e) { }
             this.show();
             console.log("JSON VIEW", data);
             // this.$('iframe').contentWindow.document.body.innerHTML = `<img class='load-indicator' src='https://samherbert.net/svg-loaders/svg-loaders/bars.svg'/>`
@@ -20,7 +20,8 @@
                     key{color: cornflowerblue; font-weight: bold; }
                     index{color: cyan; font-weight: bold;}
                     .string{color: white; }
-                    .date{color: violet;}
+                    .date{color: lime;}
+                    .null,.undefined {color: violet;}
                     .boolean.false{color: tomato;}
                     .boolean.true{color: lime;}
                     .number{color: orange;}
@@ -38,6 +39,7 @@
         html(JSON, level = 0) {
             let typ = typeof (JSON);
             if (Array.isArray(JSON)) typ = 'array';
+            if (JSON === null) typ = 'null';
             let date = new Date(JSON);
             if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && JSON.length > 5) typ = 'date';
             let output = '';
