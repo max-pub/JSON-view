@@ -22,7 +22,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 		white-space: pre;
 		color: white;
 		font-family: monospace;
-		padding: .3rem;
+		/* padding: .3rem; */
 	}
 
 	/* iframe {
@@ -42,17 +42,22 @@ STYLE.appendChild(document.createTextNode(`:host {
 	} */
 
 	key {
-		color: cornflowerblue;
+		color: white;
 		font-weight: bold;
 	}
 
 	index {
-		color: cyan;
+		color: gray;
+		font-weight: bold;
+	}
+
+	control {
+		color: silver;
 		font-weight: bold;
 	}
 
 	.string {
-		color: white;
+		color: orange;
 	}
 
 	.date {
@@ -74,11 +79,6 @@ STYLE.appendChild(document.createTextNode(`:host {
 
 	.number {
 		color: orange;
-	}
-
-	control {
-		color: gray;
-		font-weight: bold;
 	}`));
 //] CSS
 
@@ -239,7 +239,9 @@ class WebTag extends HTMLElement {
 		}
 		show() {
 			console.log('model change', this.textContent)
-			this.$q1('main').innerHTML = this.html(JSON.parse(this.textContent));
+			try {
+				this.$q1('main').innerHTML = this.html(JSON.parse(this.textContent));
+			} catch { }
 		}
 		html(JSON, level = 0) {
 			let typ = typeof (JSON);
