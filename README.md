@@ -4,6 +4,7 @@
 
 <json-view>
 	{"number":123, "string":"abc"}
-</json-view>```
+</json-view>
+```
 
 [demo](demo.htm)
