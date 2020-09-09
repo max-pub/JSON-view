@@ -57,7 +57,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 
 	.string {
-		color: orange;
+		color: gold;
 	}
 
 	.date {
