@@ -78,7 +78,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 
 	.number {
-		color: orange;
+		color: aqua;
 	}`));
 //] CSS
 
