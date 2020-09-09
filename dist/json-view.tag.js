@@ -21,7 +21,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 		font-size: 14px;
 		white-space: pre;
 		color: white;
-		font-family: monospace;
+		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
 	}
 
@@ -64,17 +64,21 @@ STYLE.appendChild(document.createTextNode(`:host {
 		color: magenta;
 	}
 
+	.url {
+		color: pink;
+	}
+
 	.null,
 	.undefined {
 		color: violet;
 	}
 
 	.boolean.false {
-		color: tomato;
+		color: #f44;
 	}
 
 	.boolean.true {
-		color: lime;
+		color: #4f4;
 	}
 
 	.number {
@@ -245,10 +249,19 @@ class WebTag extends HTMLElement {
 		}
 		html(JSON, level = 0) {
 			let typ = typeof (JSON);
-			if (Array.isArray(JSON)) typ = 'array';
-			if (JSON === null) typ = 'null';
+			if (Array.isArray(JSON))
+				typ = 'array';
+			if (JSON === null)
+				typ = 'null';
 			let date = new Date(JSON);
-			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && JSON.length > 5) typ = 'date';
+			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && JSON.length > 5)
+				typ = 'date';
+			console.log(JSON);
+			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(JSON)?.[0]
+			// let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/)[0];
+			console.log('url', url);
+			if (url == JSON)
+				typ = 'url';
 			let output = '';
 			let tabs = Array(level + 1).fill('').join('\t');
 			switch (typ) {
@@ -263,6 +276,7 @@ class WebTag extends HTMLElement {
 					return `<control>[</control>${output}\n${tabs}<control>]</control>`;
 
 				case 'string':
+				case 'url':
 				case 'date':
 					return `<control>"</control><value class='${typ}'>${JSON}</value><control>"</control>`;
 
