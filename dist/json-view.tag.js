@@ -70,7 +70,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 
 	.null,
 	.undefined {
-		color: violet;
+		color: silver;
 	}
 
 	.boolean.false {
@@ -260,7 +260,7 @@ class WebTag extends HTMLElement {
 			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(JSON)?.[0]
 			// let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/)[0];
 			console.log('url', url);
-			if (url == JSON)
+			if (url && url == JSON)
 				typ = 'url';
 			let output = '';
 			let tabs = Array(level + 1).fill('').join('\t');
