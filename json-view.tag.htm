@@ -11,9 +11,9 @@
 			this.show()
 		}
 		show() {
-			console.log('model change', this.textContent)
+			console.log('render JSON-VIEW', this.textContent)
 			try {
-				this.$q1('main').innerHTML = this.html(JSON.parse(this.textContent));
+				this.$view.Q('main',1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
 		}
 		html(JSON, level = 0) {
@@ -25,10 +25,10 @@
 			let date = new Date(JSON);
 			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && JSON.length > 5)
 				typ = 'date';
-			console.log(JSON);
+			// console.log(JSON);
 			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(JSON)?.[0]
 			// let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/)[0];
-			console.log('url', url);
+			// console.log('url', url);
 			if (url && url == JSON)
 				typ = 'url';
 			let output = '';
