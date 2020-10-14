@@ -103,6 +103,7 @@ class WebTag extends HTMLElement {
 		this.modelObserver = new MutationObserver(events => {
 			if ((events[0].type == 'attributes') && (events[0].target == this)) {
 			} else {
+				this.$onDataChange(events); //: $onDataChange
 			}
 		}).observe(this, { attributes: true, characterData: true, attributeOldValue: true, childList: true, subtree: true });
 	}
@@ -137,7 +138,7 @@ class json_view extends WebTag {
 		$onReady() {
 			this.show()
 		}
-		$onModelChange() {
+		$onDataChange() {
 			this.show()
 		}
 		show() {
