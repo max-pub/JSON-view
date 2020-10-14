@@ -1,4 +1,6 @@
-# Usage
+## [demo](demo.htm)
+
+## Usage
 ```html
 <script type="module" src='dist/json-view.tag.js'></script>
 
@@ -14,4 +16,3 @@
 </json-view> -->
 
 
-[demo](demo.htm)
