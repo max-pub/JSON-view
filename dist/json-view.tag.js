@@ -18,7 +18,11 @@ class XML {
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
 const HTML = document.createElement('template');
-HTML.innerHTML = `<main></main>`;
+HTML.innerHTML = `<aside>
+		<a on-tap='copy'>copy</a>
+		<a on-tap='save'>save</a>
+	</aside>
+	<main></main>`;
 let STYLE = document.createElement('style');
 STYLE.appendChild(document.createTextNode(`:host {
 		display: inline-block;
@@ -26,10 +30,33 @@ STYLE.appendChild(document.createTextNode(`:host {
 		tab-size: 4;
 		-moz-tab-size: 4;
 		font-size: 14px;
-		white-space: pre;
 		color: white;
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
+	}
+	main{
+		white-space: pre;
+	}
+	/* :host(:not(.save,.copy)) aside{
+		display: none
+	} */
+	:host(:not(.copy)) aside [on-tap='copy']{
+		display: none
+	}
+	:host(:not(.save)) aside [on-tap='save']{
+		display: none
+	}
+	aside {
+		display: flex;
+		justify-content: space-between;
+	}
+	aside a {
+		color: silver;
+		padding-bottom:.5rem;
+	}
+	a:hover {
+		cursor: pointer;
+		color: cornflowerblue
 	}
 	/* iframe {
 		width: 100%;
@@ -116,6 +143,7 @@ class WebTag extends HTMLElement {
 			}
 			catch { }
 		}
+		this.addEventListener('click', e => action(e, 'on-tap')); //: onTap
 	}
 	$applyHTML() {
 		this.$view = HTML.content.cloneNode(true)
@@ -144,8 +172,14 @@ class json_view extends WebTag {
 		show() {
 			console.log('render JSON-VIEW', this.textContent)
 			try {
-				this.$view.Q('main',1).innerHTML = this.html(JSON.parse(this.textContent));
+				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
+		}
+		copy() {
+			import('https://max.pub/lib/data.js').then(x => x.copy(this.textContent))
+		}
+		save() {
+			import('https://max.pub/lib/data.js').then(x => x.save(this.textContent, 'data.json', 'application/json'))
 		}
 		html(JSON, level = 0) {
 			let typ = typeof (JSON);
