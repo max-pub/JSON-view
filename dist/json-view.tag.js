@@ -34,16 +34,16 @@ STYLE.appendChild(document.createTextNode(`:host {
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
 	}
-	main{
+	main {
 		white-space: pre;
 	}
 	/* :host(:not(.save,.copy)) aside{
 		display: none
 	} */
-	:host(:not(.copy)) aside [on-tap='copy']{
+	:host(:not(.copy)) aside [on-tap='copy'] {
 		display: none
 	}
-	:host(:not(.save)) aside [on-tap='save']{
+	:host(:not(.save)) aside [on-tap='save'] {
 		display: none
 	}
 	aside {
@@ -52,7 +52,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 	aside a {
 		color: silver;
-		padding-bottom:.5rem;
+		padding-bottom: .5rem;
 	}
 	a:hover {
 		cursor: pointer;
@@ -170,7 +170,7 @@ class json_view extends WebTag {
 			this.show()
 		}
 		show() {
-			console.log('render JSON-VIEW', this.textContent)
+			console.log('render JSON-VIEW', JSON.parse(this.textContent))
 			try {
 				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
