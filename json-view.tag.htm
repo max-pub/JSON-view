@@ -15,8 +15,8 @@
 			this.show()
 		}
 		show() {
-			console.log('render JSON-VIEW', JSON.parse(this.textContent))
 			try {
+				console.log('render JSON-VIEW', JSON.parse(this.textContent))
 				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
 		}

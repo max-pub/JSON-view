@@ -1,18 +1,18 @@
 console.log('json-view', import.meta.url);
+function NODE(name, attributes = {}, children = []) {
+	let node = document.createElement(name);
+	for (let key in attributes)
+		node.setAttribute(key, attributes[key]);
+	for (let child of children)
+		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
+	return node;
+}
 class XML {
-	static parse(string, type = 'text/xml') { // like JSON.parse
-		return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), type)
+	static parse(string, type = 'xml') {
+		return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), 'text/' + type)
 	}
-	static stringify(DOM) { // like JSON.stringify
+	static stringify(DOM) {
 		return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
-	}
-	static async fetch(url) {
-		return XML.parse(await fetch(url).then(x => x.text()))
-	}
-	static tag(tagName, attributes) {
-		let tag = XML.parse(`<${tagName}/>`);
-		for (let key in attributes) tag.firstChild.setAttribute(key, attributes[key]);
-		return tag.firstChild;
 	}
 }
 XMLDocument.prototype.stringify = XML.stringify
@@ -170,8 +170,8 @@ class json_view extends WebTag {
 			this.show()
 		}
 		show() {
-			console.log('render JSON-VIEW', JSON.parse(this.textContent))
 			try {
+				console.log('render JSON-VIEW', JSON.parse(this.textContent))
 				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
 		}
