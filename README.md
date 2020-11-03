@@ -1,4 +1,4 @@
-## [demo](demo.htm)
+## [demo](index.htm)
 
 ## Usage
 ```html

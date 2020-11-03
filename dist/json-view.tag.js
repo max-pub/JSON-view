@@ -36,6 +36,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 		tab-size: 4;
 		-moz-tab-size: 4;
 		font-size: 14px;
+		text-align: left;
 		color: white;
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
@@ -80,12 +81,12 @@ STYLE.appendChild(document.createTextNode(`:host {
 	.long>item {
 		display: block;
 	}
-	[level='0'] {
+	/* [level='0'] {
 		margin-left: 2rem;
 	}
 	[level='1'] {
 		margin-left: 4rem;
-	}
+	} */
 	*::before,
 	*::after {
 		color: silver;
@@ -104,6 +105,9 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 	list::after {
 		content: ']';
+	}
+	item {
+		margin-left: 2rem;
 	}
 	item::after {
 		content: ', ';
