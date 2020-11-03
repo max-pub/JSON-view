@@ -1,17 +1,30 @@
 console.log('json-view', import.meta.url);
-
-
-//[ HTML
+export default class XML {
+    static parse(string, type = 'text/xml') { // like JSON.parse
+        return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), type)
+    }
+    static stringify(DOM) { // like JSON.stringify
+        return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
+    }
+     static async fetch(url) {
+        return XML.parse(await fetch(url).then(x => x.text()))
+    }
+    static tag(tagName, attributes){
+        let tag = XML.parse(`<${tagName}/>`);
+        for(let key in attributes) tag.firstChild.setAttribute(key,attributes[key]);
+        return tag.firstChild;
+    }
+    static transform(xml, xsl, stringOutput = true) {
+        let processor = new XSLTProcessor();
+        processor.importStylesheet(typeof xsl == 'string' ? XML.parse(xsl) : xsl);
+        let output = processor.transformToDocument(typeof xml == 'string' ? XML.parse(xml) : xml);
+        return stringOutput ? XML.stringify(output) : output;
+    }
+}
+XMLDocument.prototype.stringify = XML.stringify
+Element.prototype.stringify = XML.stringify
 const HTML = document.createElement('template');
 HTML.innerHTML = `<main></main>`;
-// console.log("HTML", HTML);
-//] HTML
-
-
-
-
-
-//[ CSS
 let STYLE = document.createElement('style');
 STYLE.appendChild(document.createTextNode(`:host {
 		display: inline-block;
@@ -24,14 +37,11 @@ STYLE.appendChild(document.createTextNode(`:host {
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
 	}
-
 	/* iframe {
 		width: 100%;
 		height: 100%;
 		border: none;
 	} */
-
-
 	/* body {
 		tab-size: 4;
 		-moz-tab-size: 4;
@@ -40,201 +50,134 @@ STYLE.appendChild(document.createTextNode(`:host {
 		color: white;
 		font-family: monospace;
 	} */
-
 	key {
 		color: white;
 		font-weight: bold;
 	}
-
-	index {
-		color: gray;
-		font-weight: bold;
+	.long>item {
+		display: block;
 	}
-
-	control {
+	[level='0'] {
+		margin-left: 2rem;
+	}
+	[level='1'] {
+		margin-left: 4rem;
+	}
+	*::before,
+	*::after {
 		color: silver;
-		font-weight: bold;
 	}
-
+	.short>item {
+		margin: 0;
+	}
+	dict::before {
+		content: '{';
+	}
+	dict::after {
+		content: '}';
+	}
+	list::before {
+		content: '[';
+	}
+	list::after {
+		content: ']';
+	}
+	item::after {
+		content: ', ';
+	}
+	item:last-child::after {
+		content: '';
+	}
+	key::before {
+		content: '"';
+	}
+	key::after {
+		content: '": ';
+	}
+	.string::before {
+		content: '"';
+	}
+	.string::after {
+		content: '"';
+	}
 	.string {
 		color: gold;
 	}
-
 	.date {
 		color: magenta;
 	}
-
 	.url {
 		color: pink;
 	}
-
 	.null,
 	.undefined {
 		color: silver;
 	}
-
 	.boolean.false {
 		color: #f44;
 	}
-
 	.boolean.true {
 		color: #4f4;
 	}
-
 	.number {
 		color: aqua;
 	}`));
-//] CSS
-
-
-
-
-
-
-
+function QQ(query, i) {
+	let result = Array.from(this.querySelectorAll(query));
+	return i ? result?.[i - 1] : result;
+}
+Element.prototype.Q = QQ
+ShadowRoot.prototype.Q = QQ
+DocumentFragment.prototype.Q = QQ
 class WebTag extends HTMLElement {
-
 	constructor() {
 		super();
-		// console.log('constructor', this.innerHTML);
 		this.attachShadow({ mode: 'open', delegatesFocus: true });
 		this.shadowRoot.appendChild(STYLE.cloneNode(true)); //: CSS
 		this.$HTM = document.createElement('htm')
 		this.shadowRoot.appendChild(this.$HTM)
-		this.$viewUpdateCount = 0;
-
-
 	}
-
-
 	async connectedCallback() {
-
 		this.$applyHTML(); //: HTML
-
 		this.$attachMutationObservers();
 		this.$attachEventListeners();
-
-
-
-
 		this.$onReady(); //: onReady
 	}
-
-
 	$attachMutationObservers() {
-		//[XSLT
 		this.modelObserver = new MutationObserver(events => {
-			// console.log('model change', events, events[0].type, events[0].target, events[0].target == this)
 			if ((events[0].type == 'attributes') && (events[0].target == this)) {
-				
 			} else {
-				this.$onModelChange(events); //: $onModelChange
-
 			}
-
 		}).observe(this, { attributes: true, characterData: true, attributeOldValue: true, childList: true, subtree: true });
-		//] XSLT
-
-		
-
 	}
-	// window.addEventListener('load', () => this.applyXSLT());
-
-	//[x  on-tap  on-key  $onSlotChange
 	$attachEventListeners() {
 		let action = (event, key) => {
 			try {
 				let target = event.composedPath()[0];
-				// let target = event.target;
 				let action = target.closest(`[${key}]`);
-				// console.log('EEE', key, event.composedPath(), target, action, 'called by', this, event)
-				// console.log('PATH', event.composedPath().map(x => this.$1(x)))
 				this[action.getAttribute(key)](action, event, target)
 			}
-			catch  { }
+			catch { }
 		}
-
-
-
-
-
-
-
-
 	}
-	//]  on-tap  on-key  $onSlotChange
-
-
-	//[ HTML
 	$applyHTML() {
-		// this.shadowRoot.innerHTML = `<style>${STYLE.textContent}</style>` + new XMLSerializer().serializeToString(HTML);
 		this.$view = HTML.content.cloneNode(true)
-		// 	this.$clearView();
-		// this.shadowRoot.appendChild(STYLE.cloneNode(true));
-		// this.shadowRoot.appendChild(HTML.content.cloneNode(true));
-		// this.shadowRoot.insertAdjacentElement('afterbegin',STYLE);
 	}
-	//] HTML
-
-
-
-	// $clearView() {
-	// 	this.$clear(this.shadowRoot);
-	// }
 	$clear(R) {
-		// https://jsperf.com/innerhtml-vs-removechild/15  >> 3 times faster
 		while (R.lastChild)
 			R.removeChild(R.lastChild);
 	}
-
-
-	// set $style(HTML) {
-	// 	this.shadowRoot.innerHTML = HTML;
-	// }
 	get $view() {
 		return this.$HTM;
-		// return this.shadowRoot.lastChild;
 	}
 	set $view(HTML) {
 		this.$clear(this.$view);
+		if (typeof HTML == 'string')
+			HTML = new DOMParser().parseFromString(HTML, 'text/html').firstChild
 		this.$view.appendChild(HTML);
 	}
-
-	
-
-
-	// 	let treeWalker = document.createTreeWalker(temp1, NodeFilter.SHOW_ELEMENT);
-	// let node = null;
-	// let list = [];
-	// while (node = treeWalker.nextNode()) {
-	// 	list.push(currentNode)
-	// }
-
-
-
-
-
-
-
-
-	$q1(q) { return this.shadowRoot.querySelector(q) } //: viewQS1
-
-
-
-	
-
-
-	
-
-
-
-	
-
-
-	//--------------------------------------------
-	//--------------------------------------------
-
-	
+};
+	class json_view extends WebTag {
 		$onReady() {
 			this.show()
 		}
@@ -244,55 +187,43 @@ class WebTag extends HTMLElement {
 		show() {
 			console.log('model change', this.textContent)
 			try {
-				this.$q1('main').innerHTML = this.html(JSON.parse(this.textContent));
+				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
 		}
-		html(JSON, level = 0) {
-			let typ = typeof (JSON);
-			if (Array.isArray(JSON))
+		html(data, level = 0) {
+			let typ = typeof (data);
+			if (Array.isArray(data))
 				typ = 'array';
-			if (JSON === null)
+			if (data === null)
 				typ = 'null';
-			let date = new Date(JSON);
-			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && JSON.length > 5)
+			let date = new Date(data);
+			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && data.length > 5)
 				typ = 'date';
-			console.log(JSON);
-			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(JSON)?.[0]
-			// let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/)[0];
-			console.log('url', url);
-			if (url && url == JSON)
+			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(data)?.[0]
+			if (url && url == data)
 				typ = 'url';
 			let output = '';
 			let tabs = Array(level + 1).fill('').join('\t');
+			let len = JSON.stringify(data).length;
 			switch (typ) {
 				case 'object':
-					for (let key in JSON)
-						output += `\n${tabs}\t<key>${key}</key><control>:</control> ${this.html(JSON[key], level + 1)}`;
-					return `<control>{</control>${output}\n${tabs}<control>}</control>`;
-
+					for (let key in data)
+						output += `<item level='${level}'><key>${key}</key>${this.html(data[key], level + 1)}</item>`;
+					return `<dict class='${len < 50 ? 'short' : 'long'}'>${output}</dict>`;
 				case 'array':
-					for (let index in JSON)
-						output += `\n${tabs}\t<index>${index}</index><control>:</control> ${this.html(JSON[index], level + 1)}`;
-					return `<control>[</control>${output}\n${tabs}<control>]</control>`;
-
+					for (let index in data)
+						output += `<item level='${level}'>${this.html(data[index], level + 1)}</item>`;
+					return `<list class='${len < 50 ? 'short' : 'long'}'>${output}</list>`;
 				case 'string':
 				case 'url':
 				case 'date':
-					return `<control>"</control><value class='${typ}'>${JSON}</value><control>"</control>`;
-
+					return `<value class='string ${typ}'>${data}</value>`;
 				case 'boolean':
-					return `<value class='${typ} ${JSON}'>${JSON}</value>`;
+					return `<value class='${typ} ${data}'>${data}</value>`;
 				case 'number':
 				default:
-					return `<value class='${typ}'>${JSON}</value>`;
-				// case 'number': return `<control>"</control><value class='date'>${date}</value><control>"</control>`;
+					return `<value class='${typ}'>${data}</value>`;
 			}
-
-			// return output;
 		}
-
-};
-// console.log(WebTag)
-window.customElements.define('json-view', WebTag)
-
-
+	}
+window.customElements.define('json-view', json_view)

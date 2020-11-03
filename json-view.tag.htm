@@ -3,6 +3,8 @@
 </htm>
 
 <script>
+	// import typeOf from '../type.js';
+
 	class {
 		$onReady() {
 			this.show()
@@ -13,47 +15,55 @@
 		show() {
 			console.log('model change', this.textContent)
 			try {
-				this.$q1('main').innerHTML = this.html(JSON.parse(this.textContent));
+				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
 		}
-		html(JSON, level = 0) {
-			let typ = typeof (JSON);
-			if (Array.isArray(JSON))
+		html(data, level = 0) {
+			// let type = typeOf(data);
+			// console.log(level, data)
+			let typ = typeof (data);
+			if (Array.isArray(data))
 				typ = 'array';
-			if (JSON === null)
+			if (data === null)
 				typ = 'null';
-			let date = new Date(JSON);
-			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && JSON.length > 5)
+			let date = new Date(data);
+			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && data.length > 5)
 				typ = 'date';
-			console.log(JSON);
-			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(JSON)?.[0]
+			// console.log(data);
+			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(data)?.[0]
 			// let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/)[0];
-			console.log('url', url);
-			if (url && url == JSON)
+			// console.log('url', url);
+			if (url && url == data)
 				typ = 'url';
 			let output = '';
 			let tabs = Array(level + 1).fill('').join('\t');
+			let len = JSON.stringify(data).length;
 			switch (typ) {
 				case 'object':
-					for (let key in JSON)
-						output += `\n${tabs}\t<key>${key}</key><control>:</control> ${this.html(JSON[key], level + 1)}`;
-					return `<control>{</control>${output}\n${tabs}<control>}</control>`;
+					// console.log("OBJECT", data)
+					// for (let key in data) console.log('key', key)
+					for (let key in data)
+						output += `<item level='${level}'><key>${key}</key>${this.html(data[key], level + 1)}</item>`;
+					// console.log('output',output)
+					return `<dict class='${len < 50 ? 'short' : 'long'}'>${output}</dict>`;
 
 				case 'array':
-					for (let index in JSON)
-						output += `\n${tabs}\t<index>${index}</index><control>:</control> ${this.html(JSON[index], level + 1)}`;
-					return `<control>[</control>${output}\n${tabs}<control>]</control>`;
+					// let newline = len < 50 ? '' : '\n';
+					// tabs = len < 50 ? '' : tabs;
+					for (let index in data)
+						output += `<item level='${level}'>${this.html(data[index], level + 1)}</item>`;
+					return `<list class='${len < 50 ? 'short' : 'long'}'>${output}</list>`;
 
 				case 'string':
 				case 'url':
 				case 'date':
-					return `<control>"</control><value class='${typ}'>${JSON}</value><control>"</control>`;
+					return `<value class='string ${typ}'>${data}</value>`;
 
 				case 'boolean':
-					return `<value class='${typ} ${JSON}'>${JSON}</value>`;
+					return `<value class='${typ} ${data}'>${data}</value>`;
 				case 'number':
 				default:
-					return `<value class='${typ}'>${JSON}</value>`;
+					return `<value class='${typ}'>${data}</value>`;
 				// case 'number': return `<control>"</control><value class='date'>${date}</value><control>"</control>`;
 			}
 
@@ -96,15 +106,67 @@
 		font-weight: bold;
 	}
 
-	index {
-		color: gray;
-		font-weight: bold;
+	.long>item {
+		display: block;
 	}
 
-	control {
-		color: silver;
-		font-weight: bold;
+	[level='0'] {
+		margin-left: 2rem;
 	}
+
+	[level='1'] {
+		margin-left: 4rem;
+	}
+
+	*::before,
+	*::after {
+		color: silver;
+	}
+
+	.short>item {
+		margin: 0;
+	}
+
+	dict::before {
+		content: '{';
+	}
+
+	dict::after {
+		content: '}';
+	}
+
+	list::before {
+		content: '[';
+	}
+
+	list::after {
+		content: ']';
+	}
+
+	item::after {
+		content: ', ';
+	}
+
+	item:last-child::after {
+		content: '';
+	}
+
+	key::before {
+		content: '"';
+	}
+
+	key::after {
+		content: '": ';
+	}
+
+	.string::before {
+		content: '"';
+	}
+
+	.string::after {
+		content: '"';
+	}
+
 
 	.string {
 		color: gold;

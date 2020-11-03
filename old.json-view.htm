@@ -1,0 +1,142 @@
+<htm>
+	<main></main>
+</htm>
+
+<script>
+	// import typeOf from '../type.js';
+
+	class {
+		$onReady() {
+			this.show()
+		}
+		$onDataChange() {
+			this.show()
+		}
+		show() {
+			console.log('model change', this.textContent)
+			try {
+				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
+			} catch (e) { console.error(e) }
+		}
+		html(JSON, level = 0) {
+			// let type = typeOf(JSON);
+			console.log('make html', JSON)
+			
+			let typ = typeof (JSON);
+			if (Array.isArray(JSON))
+				typ = 'array';
+			if (JSON === null)
+				typ = 'null';
+			let date = new Date(JSON);
+			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && JSON.length > 5)
+				typ = 'date';
+			console.log(JSON);
+			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(JSON)?.[0]
+			// let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/)[0];
+			console.log('url', url);
+			if (url && url == JSON)
+				typ = 'url';
+			let output = '';
+			let tabs = Array(level + 1).fill('').join('\t');
+			switch (typ) {
+				case 'object':
+					for (let key in JSON)
+						output += `\n${tabs}\t<key>${key}</key><control>:</control> ${this.html(JSON[key], level + 1)}`;
+					return `<control>{</control>${output}\n${tabs}<control>}</control>`;
+
+				case 'array':
+					for (let index in JSON)
+						output += `\n${tabs}\t<index>${index}</index><control>:</control> ${this.html(JSON[index], level + 1)}`;
+					return `<control>[</control>${output}\n${tabs}<control>]</control>`;
+
+				case 'string':
+				case 'url':
+				case 'date':
+					return `<control>"</control><value class='${typ}'>${JSON}</value><control>"</control>`;
+
+				case 'boolean':
+					return `<value class='${typ} ${JSON}'>${JSON}</value>`;
+				case 'number':
+				default:
+					return `<value class='${typ}'>${JSON}</value>`;
+				// case 'number': return `<control>"</control><value class='date'>${date}</value><control>"</control>`;
+			}
+
+			// return output;
+		}
+	}
+</script>
+
+<style>
+	:host {
+		display: inline-block;
+		background: #333;
+		tab-size: 4;
+		-moz-tab-size: 4;
+		font-size: 14px;
+		white-space: pre;
+		color: white;
+		font-family: "Lucida Console", Monaco, monospace;
+		/* padding: .3rem; */
+	}
+
+	/* iframe {
+		width: 100%;
+		height: 100%;
+		border: none;
+	} */
+
+
+	/* body {
+		tab-size: 4;
+		-moz-tab-size: 4;
+		font-size: 14px;
+		white-space: pre;
+		color: white;
+		font-family: monospace;
+	} */
+
+	key {
+		color: white;
+		font-weight: bold;
+	}
+
+	index {
+		color: gray;
+		font-weight: bold;
+	}
+
+	control {
+		color: silver;
+		font-weight: bold;
+	}
+
+	.string {
+		color: gold;
+	}
+
+	.date {
+		color: magenta;
+	}
+
+	.url {
+		color: pink;
+	}
+
+	.null,
+	.undefined {
+		color: silver;
+	}
+
+	.boolean.false {
+		color: #f44;
+	}
+
+	.boolean.true {
+		color: #4f4;
+	}
+
+	.number {
+		color: aqua;
+	}
+</style>
