@@ -24,7 +24,11 @@ export default class XML {
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
 const HTML = document.createElement('template');
-HTML.innerHTML = `<main></main>`;
+HTML.innerHTML = `<aside>
+		<a on-tap='copy'>copy</a>
+		<a on-tap='save'>save</a>
+	</aside>
+	<main></main>`;
 let STYLE = document.createElement('style');
 STYLE.appendChild(document.createTextNode(`:host {
 		display: inline-block;
@@ -32,10 +36,33 @@ STYLE.appendChild(document.createTextNode(`:host {
 		tab-size: 4;
 		-moz-tab-size: 4;
 		font-size: 14px;
-		white-space: pre;
 		color: white;
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
+	}
+	main {
+		white-space: pre;
+	}
+	/* :host(:not(.save,.copy)) aside{
+		display: none
+	} */
+	:host(:not(.copy)) aside [on-tap='copy'] {
+		display: none
+	}
+	:host(:not(.save)) aside [on-tap='save'] {
+		display: none
+	}
+	aside {
+		display: flex;
+		justify-content: space-between;
+	}
+	aside a {
+		color: silver;
+		padding-bottom: .5rem;
+	}
+	a:hover {
+		cursor: pointer;
+		color: cornflowerblue
 	}
 	/* iframe {
 		width: 100%;
@@ -50,10 +77,6 @@ STYLE.appendChild(document.createTextNode(`:host {
 		color: white;
 		font-family: monospace;
 	} */
-	key {
-		color: white;
-		font-weight: bold;
-	}
 	.long>item {
 		display: block;
 	}
@@ -87,6 +110,10 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 	item:last-child::after {
 		content: '';
+	}
+	key {
+		color: white;
+		font-weight: bold;
 	}
 	key::before {
 		content: '"';
@@ -147,6 +174,7 @@ class WebTag extends HTMLElement {
 		this.modelObserver = new MutationObserver(events => {
 			if ((events[0].type == 'attributes') && (events[0].target == this)) {
 			} else {
+				this.$onDataChange(events); //: $onDataChange
 			}
 		}).observe(this, { attributes: true, characterData: true, attributeOldValue: true, childList: true, subtree: true });
 	}
@@ -159,6 +187,7 @@ class WebTag extends HTMLElement {
 			}
 			catch { }
 		}
+		this.addEventListener('click', e => action(e, 'on-tap')); //: onTap
 	}
 	$applyHTML() {
 		this.$view = HTML.content.cloneNode(true)
@@ -181,14 +210,19 @@ class WebTag extends HTMLElement {
 		$onReady() {
 			this.show()
 		}
-		$onModelChange() {
+		$onDataChange() {
 			this.show()
 		}
 		show() {
-			console.log('model change', this.textContent)
 			try {
 				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
 			} catch { }
+		}
+		copy() {
+			import('https://max.pub/lib/data.js').then(x => x.copy(this.textContent))
+		}
+		save() {
+			import('https://max.pub/lib/data.js').then(x => x.save(this.textContent, 'data.json', 'application/json'))
 		}
 		html(data, level = 0) {
 			let typ = typeof (data);
