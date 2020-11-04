@@ -1,4 +1,4 @@
-## [demo](index.htm)
+## [demo](//max.pub/hilite/)
 
 ## Usage
 ```html

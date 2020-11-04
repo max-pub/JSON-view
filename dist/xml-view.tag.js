@@ -24,12 +24,85 @@ export default class XML {
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
 const HTML = document.createElement('template');
-HTML.innerHTML = `___HTML___`;
-const XSLT = new DOMParser().parseFromString(`___XSLT___`, 'text/xml');
-const XSLP = new XSLTProcessor();
-XSLP.importStylesheet(XSLT);
+HTML.innerHTML = `<aside>
+		<a on-tap='copy'>copy</a>
+		<a on-tap='save'>save</a>
+	</aside>
+	<main></main>`;
 let STYLE = document.createElement('style');
-STYLE.appendChild(document.createTextNode(``));
+STYLE.appendChild(document.createTextNode(`:host {
+		display: inline-block;
+		background: #333;
+		tab-size: 4;
+		-moz-tab-size: 4;
+		font-size: 14px;
+		text-align: left;
+		color: white;
+		font-family: "Lucida Console", Monaco, monospace;
+		/* padding: .3rem; */
+	}
+	:host(:not(.copy)) aside [on-tap='copy'] {
+		display: none
+	}
+	:host(:not(.save)) aside [on-tap='save'] {
+		display: none
+	}
+	aside {
+		display: flex;
+		justify-content: space-between;
+	}
+	aside a {
+		color: silver;
+		padding-bottom: .5rem;
+	}
+	a:hover {
+		cursor: pointer;
+		color: cornflowerblue
+	}
+	tag {
+		display: block;
+		margin-left: 2rem;
+	}
+	tag::before {
+		content: '<'attr(name) '>';
+	}
+	tag.attributes::before {
+		content: '<'attr(name) '';
+	}
+	attribute:last-child::after {
+		content: '"/>'
+	}
+	tag.children>*>attribute:last-child::after {
+		content: '">'
+	}
+	tag.children::after {
+		content: '</'attr(name) '>';
+	}
+	attribute {
+		color: orange;
+	}
+	attribute::before {
+		content: attr(name) '="';
+		color: silver;
+	}
+	attribute::after {
+		content: '"';
+		color: silver;
+	}
+	text {
+		color: lightblue;
+	}
+	*::before,
+	*::after {
+		/* color: silver; */
+	}`));
+function QQ(query, i) {
+	let result = Array.from(this.querySelectorAll(query));
+	return i ? result?.[i - 1] : result;
+}
+Element.prototype.Q = QQ
+ShadowRoot.prototype.Q = QQ
+DocumentFragment.prototype.Q = QQ
 class WebTag extends HTMLElement {
 	constructor() {
 		super();
@@ -42,13 +115,13 @@ class WebTag extends HTMLElement {
 		this.$applyHTML(); //: HTML
 		this.$attachMutationObservers();
 		this.$attachEventListeners();
-		await this.$render() //: XSLT
+		this.$onReady(); //: onReady
 	}
 	$attachMutationObservers() {
 		this.modelObserver = new MutationObserver(events => {
 			if ((events[0].type == 'attributes') && (events[0].target == this)) {
 			} else {
-				if (this.$autoUpdate !== false) this.$render(events); //: XSLT
+				this.$onDataChange(events); //: $onDataChange
 			}
 		}).observe(this, { attributes: true, characterData: true, attributeOldValue: true, childList: true, subtree: true });
 	}
@@ -61,6 +134,7 @@ class WebTag extends HTMLElement {
 			}
 			catch { }
 		}
+		this.addEventListener('click', e => action(e, 'on-tap')); //: onTap
 	}
 	$applyHTML() {
 		this.$view = HTML.content.cloneNode(true)
@@ -78,27 +152,39 @@ class WebTag extends HTMLElement {
 			HTML = new DOMParser().parseFromString(HTML, 'text/html').firstChild
 		this.$view.appendChild(HTML);
 	}
-	get $data() {
-		return this;
-	}
-	set $data(XML) {
-		this.$clear(this.$data);
-		if (typeof XML == 'string')
-			XML = new DOMParser().parseFromString(XML, 'text/xml').firstChild
-		this.appendChild(XML);
-	}
-	$render(events) {
-		return new Promise((resolve, reject) => {
-			window.requestAnimationFrame(t => {
-				const t1 = new Date().getTime();
-				let xml = new DOMParser().parseFromString(new XMLSerializer().serializeToString(this).replace(/xmlns=".*?"/g, ''), 'text/xml'); // some platforms need to reparse the xml
-				let output = XSLP.transformToFragment(xml, document);
-				this.$view = output;
-				resolve()
-			});
-		});
-	}
 };
-class xml_view extends WebTag {
-}
+	class xml_view extends WebTag {
+		$onReady() {
+			this.show()
+		}
+		$onDataChange() {
+			this.show()
+		}
+		show() {
+			try {
+				this.$view.Q('main', 1).innerHTML = this.html(new DOMParser().parseFromString(this.innerHTML, 'text/xml').firstChild);
+			} catch { }
+		}
+		copy() {
+			import('https://max.pub/lib/data.js').then(x => x.copy(this.innerHTML))
+		}
+		save() {
+			import('https://max.pub/lib/data.js').then(x => x.save(this.innerHTML, 'data.xml', 'text/xml'))
+		}
+		html(node, level = 0) {
+			console.log('render', node);
+			console.log('attr', node.attributes)
+			if (node.nodeType == 3) {
+				if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
+				else return '';
+			}
+			console.log('children', Array.from(node.children).map(x => x.tagName))
+			let html = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
+				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
+				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
+				</tag>`;
+			console.log('html', html)
+			return html;
+		}
+	}
 window.customElements.define('xml-view', xml_view)

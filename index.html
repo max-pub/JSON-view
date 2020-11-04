@@ -1,0 +1,41 @@
+<link href="https://max.pub/css/base.css" rel="stylesheet" type="text/css">
+<style>
+	json-view,xml-view {
+		width: 90%;
+		padding: 1rem;
+	}
+</style>
+
+<script type="module" src='dist/json-view.tag.js'></script>
+<script type="module" src='dist/xml-view.tag.js'></script>
+
+<article>
+	<h1>hilite demo</h1>
+
+	<a href='https://github.com/max-pub/hilite'>see code on GitHub</a>
+
+	<h2>json-view</h2>
+	<json-view class='save copy'>
+		{"number":123, "string":"abc","date":"2020-01-01", "URL":"https://www.google.com/search", "bool1":true,
+		"bool2":false, "dict":{"a":11,"b":"BB"},
+		"long-list":["very","long","list","with","many","items","that","cause","a break"],
+		"list":["one","two",333],"x":null}
+	</json-view>
+
+	<br />
+	<br />
+
+	<h2>xml-view</h2>
+	<xml-view class='save copy'>
+		<person id='12345'>
+			<birth date='2020-05-05' time='12:37'></birth>
+			<name given='John' family='Doe'></name>
+			<children>
+				<person id='22222'></person>
+			</children>
+			<biography>
+				lived a great life
+			</biography>
+		</person>
+	</xml-view>
+</article>

@@ -1,0 +1,138 @@
+<htm>
+	<aside>
+		<a on-tap='copy'>copy</a>
+		<a on-tap='save'>save</a>
+	</aside>
+	<main></main>
+</htm>
+
+<script>
+	// import typeOf from '../type.js';
+
+	class {
+		$onReady() {
+			this.show()
+		}
+		$onDataChange() {
+			this.show()
+		}
+		show() {
+			try {
+				this.$view.Q('main', 1).innerHTML = this.html(new DOMParser().parseFromString(this.innerHTML, 'text/xml').firstChild);
+			} catch { }
+		}
+
+		copy() {
+			import('https://max.pub/lib/data.js').then(x => x.copy(this.innerHTML))
+		}
+		save() {
+			import('https://max.pub/lib/data.js').then(x => x.save(this.innerHTML, 'data.xml', 'text/xml'))
+		}
+
+		html(node, level = 0) {
+			console.log('render', node);
+			console.log('attr', node.attributes)
+			if (node.nodeType == 3) {
+				if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
+				else return '';
+			}
+			console.log('children', Array.from(node.children).map(x => x.tagName))
+			let html = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
+				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
+				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
+				</tag>`;
+			console.log('html', html)
+			return html;
+		}
+	}
+</script>
+
+<style>
+	:host {
+		display: inline-block;
+		background: #333;
+		tab-size: 4;
+		-moz-tab-size: 4;
+		font-size: 14px;
+		text-align: left;
+		color: white;
+		font-family: "Lucida Console", Monaco, monospace;
+		/* padding: .3rem; */
+	}
+
+
+	:host(:not(.copy)) aside [on-tap='copy'] {
+		display: none
+	}
+
+	:host(:not(.save)) aside [on-tap='save'] {
+		display: none
+	}
+
+	aside {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	aside a {
+		color: silver;
+		padding-bottom: .5rem;
+	}
+
+	a:hover {
+		cursor: pointer;
+		color: cornflowerblue
+	}
+
+
+
+
+	tag {
+		display: block;
+		margin-left: 2rem;
+
+	}
+
+	tag::before {
+		content: '<'attr(name) '>';
+	}
+
+	tag.attributes::before {
+		content: '<'attr(name) '';
+	}
+
+	attribute:last-child::after {
+		content: '"/>'
+	}
+
+	tag.children>*>attribute:last-child::after {
+		content: '">'
+	}
+
+	tag.children::after {
+		content: '</'attr(name) '>';
+	}
+
+	attribute {
+		color: orange;
+	}
+
+	attribute::before {
+		content: attr(name) '="';
+		color: silver;
+	}
+
+	attribute::after {
+		content: '"';
+		color: silver;
+	}
+
+	text {
+		color: lightblue;
+	}
+
+	*::before,
+	*::after {
+		/* color: silver; */
+	}
+</style>
