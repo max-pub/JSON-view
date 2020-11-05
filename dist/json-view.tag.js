@@ -33,20 +33,12 @@ let STYLE = document.createElement('style');
 STYLE.appendChild(document.createTextNode(`:host {
 		display: inline-block;
 		background: #333;
-		tab-size: 4;
-		-moz-tab-size: 4;
 		font-size: 14px;
 		text-align: left;
 		color: white;
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
 	}
-	main {
-		white-space: pre;
-	}
-	/* :host(:not(.save,.copy)) aside{
-		display: none
-	} */
 	:host(:not(.copy)) aside [on-tap='copy'] {
 		display: none
 	}
@@ -65,28 +57,9 @@ STYLE.appendChild(document.createTextNode(`:host {
 		cursor: pointer;
 		color: cornflowerblue
 	}
-	/* iframe {
-		width: 100%;
-		height: 100%;
-		border: none;
-	} */
-	/* body {
-		tab-size: 4;
-		-moz-tab-size: 4;
-		font-size: 14px;
-		white-space: pre;
-		color: white;
-		font-family: monospace;
-	} */
 	.long>item {
 		display: block;
 	}
-	/* [level='0'] {
-		margin-left: 2rem;
-	}
-	[level='1'] {
-		margin-left: 4rem;
-	} */
 	*::before,
 	*::after {
 		color: silver;
@@ -94,16 +67,19 @@ STYLE.appendChild(document.createTextNode(`:host {
 	.short>item {
 		margin: 0;
 	}
-	dict::before {
+	.object::before {
 		content: '{';
 	}
-	dict::after {
+	.object::after {
 		content: '}';
 	}
-	list::before {
+	.array::before {
 		content: '[';
 	}
-	list::after {
+	.array>item>key {
+		display: none;
+	}
+	.array::after {
 		content: ']';
 	}
 	item {
@@ -120,10 +96,11 @@ STYLE.appendChild(document.createTextNode(`:host {
 		font-weight: bold;
 	}
 	key::before {
-		content: '"';
+		/* content: '"'; */
 	}
 	key::after {
-		content: '": ';
+		/* content: '": '; */
+		content: ": "
 	}
 	.string::before {
 		content: '"';
@@ -230,37 +207,18 @@ class WebTag extends HTMLElement {
 		}
 		html(data, level = 0) {
 			let typ = typeof (data);
-			if (Array.isArray(data))
-				typ = 'array';
-			if (data === null)
-				typ = 'null';
-			let date = new Date(data);
-			if (date.getFullYear() > 1970 && date.getFullYear() < 2030 && typ == 'string' && data.length > 5)
-				typ = 'date';
-			let url = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)/.exec(data)?.[0]
-			if (url && url == data)
-				typ = 'url';
+			if (Array.isArray(data)) typ = 'array';
+			if (data === null) typ = 'null';
 			let output = '';
-			let tabs = Array(level + 1).fill('').join('\t');
 			let len = JSON.stringify(data).length;
 			switch (typ) {
 				case 'object':
+				case 'array':
 					for (let key in data)
 						output += `<item level='${level}'><key>${key}</key>${this.html(data[key], level + 1)}</item>`;
-					return `<dict class='${len < 50 ? 'short' : 'long'}'>${output}</dict>`;
-				case 'array':
-					for (let index in data)
-						output += `<item level='${level}'>${this.html(data[index], level + 1)}</item>`;
-					return `<list class='${len < 50 ? 'short' : 'long'}'>${output}</list>`;
-				case 'string':
-				case 'url':
-				case 'date':
-					return `<value class='string ${typ}'>${data}</value>`;
-				case 'boolean':
-					return `<value class='${typ} ${data}'>${data}</value>`;
-				case 'number':
+					return `<list class='${typ} ${len < 50 ? 'short' : 'long'}'>${output}</list>`;
 				default:
-					return `<value class='${typ}'>${data}</value>`;
+					return `<value class='${typ} ${data}'>${data}</value>`;
 			}
 		}
 	}
