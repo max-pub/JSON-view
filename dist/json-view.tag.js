@@ -56,6 +56,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 	:host(:not(.break-all)) .short>item {
 		margin: 0;
+		margin-left: 1em;
 	}
 	.long>item {
 		display: block;
