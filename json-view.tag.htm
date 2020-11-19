@@ -87,6 +87,13 @@
 	}
 
 
+	:host(.break-all) .short>item {
+		display: block;
+	}
+
+	:host(:not(.break-all)) .short>item {
+		margin: 0;
+	}
 
 	.long>item {
 		display: block;
@@ -98,9 +105,7 @@
 		color: silver;
 	}
 
-	.short>item {
-		margin: 0;
-	}
+
 
 	.object::before {
 		content: '{';
@@ -127,7 +132,7 @@
 	}
 
 	item::after {
-		content: ', ';
+		/* content: ', '; */
 	}
 
 	item:last-child::after {
@@ -136,7 +141,7 @@
 
 	key {
 		color: white;
-		font-weight: bold;
+		/* font-weight: bold; */
 	}
 
 	key::before {
@@ -149,11 +154,11 @@
 	}
 
 	.string::before {
-		content: '"';
+		/* content: '"'; */
 	}
 
 	.string::after {
-		content: '"';
+		/* content: '"'; */
 	}
 
 

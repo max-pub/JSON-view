@@ -1,25 +1,19 @@
 console.log('xml-view', import.meta.url);
-export default class XML {
-    static parse(string, type = 'text/xml') { // like JSON.parse
-        return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), type)
-    }
-    static stringify(DOM) { // like JSON.stringify
-        return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
-    }
-     static async fetch(url) {
-        return XML.parse(await fetch(url).then(x => x.text()))
-    }
-    static tag(tagName, attributes){
-        let tag = XML.parse(`<${tagName}/>`);
-        for(let key in attributes) tag.firstChild.setAttribute(key,attributes[key]);
-        return tag.firstChild;
-    }
-    static transform(xml, xsl, stringOutput = true) {
-        let processor = new XSLTProcessor();
-        processor.importStylesheet(typeof xsl == 'string' ? XML.parse(xsl) : xsl);
-        let output = processor.transformToDocument(typeof xml == 'string' ? XML.parse(xml) : xml);
-        return stringOutput ? XML.stringify(output) : output;
-    }
+function NODE(name, attributes = {}, children = []) {
+	let node = document.createElement(name);
+	for (let key in attributes)
+		node.setAttribute(key, attributes[key]);
+	for (let child of children)
+		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
+	return node;
+}
+class XML {
+	static parse(string, type = 'xml') {
+		return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), 'text/' + type)
+	}
+	static stringify(DOM) {
+		return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
+	}
 }
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
@@ -187,4 +181,4 @@ class WebTag extends HTMLElement {
 			return html;
 		}
 	}
-window.customElements.define('xml-view', xml_view)
+window.customElements.define('xml-view', xml_view)
