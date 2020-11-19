@@ -51,10 +51,10 @@ STYLE.appendChild(document.createTextNode(`:host {
 		cursor: pointer;
 		color: cornflowerblue
 	}
-	:host(.break-all) .short>item {
+	:host(:not(.compact)) .short>item {
 		display: block;
 	}
-	:host(:not(.break-all)) .short>item {
+	:host(.compact) .short>item {
 		margin: 0 .5em;
 		/* margin-left: 1em; */
 	}
@@ -83,50 +83,47 @@ STYLE.appendChild(document.createTextNode(`:host {
 	item {
 		margin-left: 2rem;
 	}
-	item::after {
-		/* content: ', '; */
+	:host(.meta) item::after {
+		content: ', ';
 	}
-	item:last-child::after {
+	:host(.meta) item:last-child::after {
 		content: '';
 	}
 	key {
 		color: white;
 		/* font-weight: bold; */
 	}
-	key::before {
-		/* content: '"'; */
+	:host(.meta) key::before {
+		content: '"';
+	}
+	:host(.meta) key::after {
+		content: '": ';
 	}
 	key::after {
-		/* content: '": '; */
 		content: ": "
 	}
-	.string::before {
-		/* content: '"'; */
+	:host(.meta) .string::before {
+		content: '"';
 	}
-	.string::after {
-		/* content: '"'; */
+	:host(.meta) .string::after {
+		content: '"';
 	}
 	.string {
-		color: gold;
-	}
-	.date {
-		color: magenta;
-	}
-	.url {
-		color: pink;
+		color: #ff7;
+		/* color: hsla(60,80%,80%,90%) */
 	}
 	.null,
 	.undefined {
 		color: silver;
 	}
 	.boolean.false {
-		color: #f44;
+		color: #f77;
 	}
 	.boolean.true {
-		color: #4f4;
+		color: #7f7;
 	}
 	.number {
-		color: aqua;
+		color: #7ff;
 	}`));
 function QQ(query, i) {
 	let result = Array.from(this.querySelectorAll(query));
