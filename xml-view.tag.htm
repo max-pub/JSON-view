@@ -18,12 +18,12 @@
 			else return '';
 		}
 		// console.log('children', Array.from(node.children).map(x => x.tagName))
-		let html = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
+		let output = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
 				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
 				<children>${Array.from(node.childNodes).map(x => html(x)).join('\n')}</children>
 				</tag>`;
 		// console.log('html', html)
-		return html;
+		return output;
 	}
 
 	class {

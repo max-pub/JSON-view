@@ -158,11 +158,11 @@ class WebTag extends HTMLElement {
 			if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
 			else return '';
 		}
-		let html = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
+		let output = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
 				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
 				<children>${Array.from(node.childNodes).map(x => html(x)).join('\n')}</children>
 				</tag>`;
-		return html;
+		return output;
 	}
 	class xml_view extends WebTag {
 		$onReady() {
