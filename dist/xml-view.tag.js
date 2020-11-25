@@ -95,6 +95,18 @@ STYLE.appendChild(document.createTextNode(`:host {
 	*::before,
 	*::after {
 		/* color: silver; */
+	}
+	.boolean.false {
+		color: #f77;
+	}
+	.boolean.true {
+		color: #7f7;
+	}
+	.int {
+		color: #7ff;
+	}
+	.time,.date,.datetime{
+		color: #f7f;
 	}`));
 function QQ(query, i) {
 	let result = Array.from(this.querySelectorAll(query));
@@ -153,29 +165,29 @@ class WebTag extends HTMLElement {
 		this.$view.appendChild(HTML);
 	}
 };
-	export function html(node, level = 0) {
-		if (node.nodeType == 3) {
-			if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
-			else return '';
-		}
-		let output = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
-				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
-				<children>${Array.from(node.childNodes).map(x => html(x)).join('\n')}</children>
-				</tag>`;
-		return output;
-	}
 	class xml_view extends WebTag {
 		$onReady() {
-			this.show()
+			this.showDOM()
 		}
 		$onDataChange() {
-			this.show()
+			this.showDOM()
 		}
-		show() {
+		type() { return '' } // default, overwritten by external type-checker
+		showDOM() {
 			if (!this.innerHTML.trim()) return;
-			try {
-				this.$view.Q('main', 1).innerHTML = html(new DOMParser().parseFromString(this.innerHTML, 'text/xml').firstChild);
-			} catch { }
+			this.value = this.innerHTML;
+		}
+		set value(v) {
+			if (typeof v == 'string') v = new DOMParser().parseFromString(v, 'text/xml').firstChild;
+			this.XML = v;
+			this.render();
+		}
+		async render() {
+			if (this.classList.contains('types'))
+				this.type = (await import('https://max.pub/lib/types.js')).default;//.then(x => {console.log(x.default);this.type = x.default})
+			console.log('type checker', this.type);
+			console.log('render now')
+			this.$view.Q('main', 1).innerHTML = this.html(this.XML);
 		}
 		copy() {
 			import('https://max.pub/lib/data.js').then(x => x.copy(this.innerHTML))
@@ -183,8 +195,16 @@ class WebTag extends HTMLElement {
 		save() {
 			import('https://max.pub/lib/data.js').then(x => x.save(this.innerHTML, 'data.xml', 'text/xml'))
 		}
-		set value(v) {
-			this.$view.Q('main', 1).innerHTML = html(v);
+		html(node, level = 0) {
+			if (node.nodeType == 3) {
+				if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
+				else return '';
+			}
+			let output = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
+				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}' class='${this.type(x.value)} ${x.value}'>${x.value}</attribute>`).join('\n')}</attributes>
+				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
+				</tag>`;
+			return output;
 		}
 	}
 window.customElements.define('xml-view', xml_view)
