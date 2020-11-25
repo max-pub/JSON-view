@@ -153,6 +153,18 @@ class WebTag extends HTMLElement {
 		this.$view.appendChild(HTML);
 	}
 };
+	export function html(node, level = 0) {
+		if (node.nodeType == 3) {
+			if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
+			else return '';
+		}
+		console.log('children', Array.from(node.children).map(x => x.tagName))
+		let html = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
+				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
+				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
+				</tag>`;
+		return html;
+	}
 	class xml_view extends WebTag {
 		$onReady() {
 			this.show()
@@ -161,9 +173,9 @@ class WebTag extends HTMLElement {
 			this.show()
 		}
 		show() {
-			if(!this.innerHTML.trim()) return;
+			if (!this.innerHTML.trim()) return;
 			try {
-				this.$view.Q('main', 1).innerHTML = this.html(new DOMParser().parseFromString(this.innerHTML, 'text/xml').firstChild);
+				this.$view.Q('main', 1).innerHTML = html(new DOMParser().parseFromString(this.innerHTML, 'text/xml').firstChild);
 			} catch { }
 		}
 		copy() {
@@ -172,20 +184,8 @@ class WebTag extends HTMLElement {
 		save() {
 			import('https://max.pub/lib/data.js').then(x => x.save(this.innerHTML, 'data.xml', 'text/xml'))
 		}
-		set value(v){
-			this.html(v);
-		}
-		html(node, level = 0) {
-			if (node.nodeType == 3) {
-				if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
-				else return '';
-			}
-			console.log('children', Array.from(node.children).map(x => x.tagName))
-			let html = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
-				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
-				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
-				</tag>`;
-			return html;
+		set value(v) {
+			this.$view.Q('main', 1).innerHTML = html(v);
 		}
 	}
 window.customElements.define('xml-view', xml_view)
