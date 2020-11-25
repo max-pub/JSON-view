@@ -41,6 +41,11 @@ STYLE.appendChild(document.createTextNode(`:host {
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
 	}
+	:host(.scroll){
+		overflow: auto;
+		width: 100%;
+		height: 100%;
+	}
 	:host(:not(.copy)) aside [on-tap='copy'] {
 		display: none
 	}
@@ -178,9 +183,12 @@ class WebTag extends HTMLElement {
 			this.value = this.innerHTML;
 		}
 		set value(v) {
-			if (typeof v == 'string') v = new DOMParser().parseFromString(v, 'text/xml').firstChild;
+			if (typeof v == 'string') v = new DOMParser().parseFromString(`<x>${v}</x>`, 'text/xml').firstChild;
 			this.XML = v;
 			this.render();
+		}
+		get text(){
+			return new XMLSerializer().serializeToString(this.XML)
 		}
 		async render() {
 			if (this.classList.contains('types'))
@@ -190,10 +198,10 @@ class WebTag extends HTMLElement {
 			this.$view.Q('main', 1).innerHTML = this.html(this.XML);
 		}
 		copy() {
-			import('https://max.pub/lib/data.js').then(x => x.copy(this.innerHTML))
+			import('https://max.pub/lib/data.js').then(x => x.copy(this.text))
 		}
 		save() {
-			import('https://max.pub/lib/data.js').then(x => x.save(this.innerHTML, 'data.xml', 'text/xml'))
+			import('https://max.pub/lib/data.js').then(x => x.save(this.text, 'data.xml', 'text/xml'))
 		}
 		html(node, level = 0) {
 			if (node.nodeType == 3) {
