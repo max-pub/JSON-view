@@ -79,7 +79,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 		content: '</'attr(name) '>';
 	}
 	attribute {
-		color: orange;
+		color: #ff7;
 	}
 	attribute::before {
 		content: attr(name) '="';
