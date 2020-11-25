@@ -1,19 +1,25 @@
 console.log('xml-view', import.meta.url);
-function NODE(name, attributes = {}, children = []) {
-	let node = document.createElement(name);
-	for (let key in attributes)
-		node.setAttribute(key, attributes[key]);
-	for (let child of children)
-		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
-	return node;
-}
-class XML {
-	static parse(string, type = 'xml') {
-		return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), 'text/' + type)
-	}
-	static stringify(DOM) {
-		return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
-	}
+export default class XML {
+    static parse(string, type = 'text/xml') { // like JSON.parse
+        return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), type)
+    }
+    static stringify(DOM) { // like JSON.stringify
+        return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
+    }
+     static async fetch(url) {
+        return XML.parse(await fetch(url).then(x => x.text()))
+    }
+    static tag(tagName, attributes){
+        let tag = XML.parse(`<${tagName}/>`);
+        for(let key in attributes) tag.firstChild.setAttribute(key,attributes[key]);
+        return tag.firstChild;
+    }
+    static transform(xml, xsl, stringOutput = true) {
+        let processor = new XSLTProcessor();
+        processor.importStylesheet(typeof xsl == 'string' ? XML.parse(xsl) : xsl);
+        let output = processor.transformToDocument(typeof xml == 'string' ? XML.parse(xml) : xml);
+        return stringOutput ? XML.stringify(output) : output;
+    }
 }
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
@@ -155,6 +161,7 @@ class WebTag extends HTMLElement {
 			this.show()
 		}
 		show() {
+			if(!this.innerHTML.trim()) return;
 			try {
 				this.$view.Q('main', 1).innerHTML = this.html(new DOMParser().parseFromString(this.innerHTML, 'text/xml').firstChild);
 			} catch { }
@@ -165,9 +172,10 @@ class WebTag extends HTMLElement {
 		save() {
 			import('https://max.pub/lib/data.js').then(x => x.save(this.innerHTML, 'data.xml', 'text/xml'))
 		}
+		set value(v){
+			this.html(v);
+		}
 		html(node, level = 0) {
-			console.log('render', node);
-			console.log('attr', node.attributes)
 			if (node.nodeType == 3) {
 				if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
 				else return '';
@@ -177,8 +185,7 @@ class WebTag extends HTMLElement {
 				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
 				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
 				</tag>`;
-			console.log('html', html)
 			return html;
 		}
 	}
-window.customElements.define('xml-view', xml_view)
+window.customElements.define('xml-view', xml_view)
