@@ -158,7 +158,6 @@ class WebTag extends HTMLElement {
 			if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
 			else return '';
 		}
-		console.log('children', Array.from(node.children).map(x => x.tagName))
 		let html = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
 				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}'>${x.value}</attribute>`).join('\n')}</attributes>
 				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
