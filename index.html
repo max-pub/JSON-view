@@ -1,9 +1,19 @@
 <link href="https://max.pub/css/base.css" rel="stylesheet" type="text/css">
 <style>
+	/* @import url('https://max.pub/css/publicSans.css'); */
+	@import url('https://max.pub/css/fira.css');
 	json-view,
 	xml-view {
 		width: 90%;
 		padding: 1rem;
+	}
+
+	.toggles a{margin: 0 2em;}
+	json-view{
+		/* filter: invert(1); */
+	}
+	xml-view{
+		height:300px;
 	}
 </style>
 
@@ -33,7 +43,7 @@
 	<br />
 
 	<h2>xml-view</h2>
-	<xml-view class='save copy types scroll'>
+	<xml-view class='save copy types scroll monospace'>
 		<person id='12345'>
 			<birth date='2020-05-05' time='12:30:00'></birth>
 			<name given='John' family='Doe'></name>
@@ -70,12 +80,3 @@
 <script>
 	json = document.querySelector('json-view').classList
 </script>
-<style>
-	.toggles a{margin: 0 2em;}
-	json-view{
-		/* filter: invert(1); */
-	}
-	xml-view{
-		height:300px;
-	}
-</style>
