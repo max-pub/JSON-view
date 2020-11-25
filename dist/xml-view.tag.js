@@ -102,7 +102,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 	.boolean.true {
 		color: #7f7;
 	}
-	.int {
+	.int,.real {
 		color: #7ff;
 	}
 	.time,.date,.datetime{
