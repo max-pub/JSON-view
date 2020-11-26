@@ -24,8 +24,8 @@ XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
 const HTML = document.createElement('template');
 HTML.innerHTML = `<aside>
-		<a on-tap='copy'>copy</a>
-		<a on-tap='save'>save</a>
+		<a on-tap='copyAll'>copy</a>
+		<a on-tap='saveAll'>save</a>
 	</aside>
 	<main></main>`;
 let STYLE = document.createElement('style');
@@ -101,6 +101,10 @@ STYLE.appendChild(document.createTextNode(`:host {
 		display: block;
 		margin-left: 2rem;
 	}
+	tag:hover>name {
+		cursor: pointer;
+		color: red;
+	}
 	attribute {
 		/* display: block; */
 		margin-left: 1rem;
@@ -113,14 +117,11 @@ STYLE.appendChild(document.createTextNode(`:host {
 		cursor: pointer;
 	}
 	attribute>value {
+		/* default value color */
 		color: #ff7;
 	}
 	text {
 		color: lightblue;
-	}
-	*::before,
-	*::after {
-		/* color: silver; */
 	}
 	.boolean.false {
 		color: #f77;
@@ -128,8 +129,8 @@ STYLE.appendChild(document.createTextNode(`:host {
 	.boolean.true {
 		color: #7f7;
 	}
-	.int,
-	.real {
+	.int>value,
+	.real>value {
 		color: #7ff;
 	}
 	.time>value,
@@ -219,36 +220,50 @@ class WebTag extends HTMLElement {
 				this.type = (await import('https://max.pub/lib/types.js')).default;//.then(x => {console.log(x.default);this.type = x.default})
 			console.log('type checker', this.type);
 			console.log('render now')
-			this.$view.Q('main', 1).innerHTML = new XMLSerializer().serializeToString(this.html(this.XML))
+			this.$view.Q('main', 1).innerHTML = ''
+			this.$view.Q('main', 1).ADD(this.html(this.XML))
 		}
-		copy() {
-			import('https://max.pub/lib/data.js').then(x => x.copy(this.text))
+		copy(text) {
+			import('https://max.pub/lib/data.js').then(x => x.copy(text))
 		}
-		save() {
-			import('https://max.pub/lib/data.js').then(x => x.save(this.text, 'data.xml', 'text/xml'))
+		save(text) {
+			import('https://max.pub/lib/data.js').then(x => x.save(text, 'data.xml', 'text/xml'))
+		}
+		copyAll() {
+			this.copy(this.text);
+		}
+		saveAll() {
+			this.save(this.text);
+		}
+		copyPart(node) {
+			switch (node.tagName) {
+				case 'VALUE': return this.copy(node.textContent);
+				case 'KEY': return this.copy(node.parentNode.textContent);
+				case 'TAG': return this.copy(node.textContent);
+			}
 		}
 		html(node, level = 0) {
 			if (node.nodeType == 3) {
 				if (node.nodeValue.trim()) return NODE('text').ADD(node.nodeValue);
 				else return '';
 			}
-			let hasChildren = node.childNodes.length ? true: false
-			let hasAttributes = node.hasAttributes() ? true : false
-			let output = NODE('tag').ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
-			if (hasAttributes)
+			let children = Array.from(node.childNodes);
+			let attributes = Array.from(node.attributes);
+			let output = NODE('tag', { 'on-tap': 'copyPart' }).ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
+			if (attributes.length)
 				output.ADD(NODE('attributes').ADD(
-					...Array.from(node.attributes).map(attr =>
+					...attributes.map(attr =>
 						NODE('attribute', { class: this.type(attr.value) }).ADD(
-							NODE('key').ADD(attr.name),
+							NODE('key', { 'on-tap': 'copyPart' }).ADD(' ' + attr.name),
 							NODE('c').ADD('="'),
-							NODE('value').ADD(attr.value),
+							NODE('value', { 'on-tap': 'copyPart' }).ADD(attr.value),
 							NODE('c').ADD('"'),
 						)),
 				))
-			if (hasChildren)
+			if (children.length)
 				output.ADD(NODE('children').ADD(
 					NODE('c').ADD('>'),
-					...Array.from(node.childNodes).map(child => this.html(child))
+					...children.map(child => this.html(child))
 				),
 					NODE('c').ADD('</'), NODE('name').ADD(node.tagName), NODE('c').ADD('>')
 				)

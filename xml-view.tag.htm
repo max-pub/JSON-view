@@ -1,7 +1,7 @@
 <htm>
 	<aside>
-		<a on-tap='copy'>copy</a>
-		<a on-tap='save'>save</a>
+		<a on-tap='copyAll'>copy</a>
+		<a on-tap='saveAll'>save</a>
 	</aside>
 	<main></main>
 </htm>
@@ -49,7 +49,10 @@
 			console.log('render now')
 			// this.$view.Q('main', 1).innerHTML = this.html(this.XML);
 
-			this.$view.Q('main', 1).innerHTML = new XMLSerializer().serializeToString(this.html(this.XML))
+			// this.$view.Q('main', 1).innerHTML = new XMLSerializer().serializeToString(this.html(this.XML))
+
+			this.$view.Q('main', 1).innerHTML = ''
+			this.$view.Q('main', 1).ADD(this.html(this.XML))
 		}
 
 		// show() {
@@ -59,63 +62,59 @@
 		// 	} catch { }
 		// }
 
-		copy() {
-			import('https://max.pub/lib/data.js').then(x => x.copy(this.text))
+		copy(text) {
+			import('https://max.pub/lib/data.js').then(x => x.copy(text))
 		}
-		save() {
-			import('https://max.pub/lib/data.js').then(x => x.save(this.text, 'data.xml', 'text/xml'))
+		save(text) {
+			import('https://max.pub/lib/data.js').then(x => x.save(text, 'data.xml', 'text/xml'))
 		}
+		copyAll() {
+			this.copy(this.text);
+		}
+		saveAll() {
+			this.save(this.text);
+		}
+		copyPart(node) {
+			// console.log('part', node.tagName, node.textContent)
+			switch (node.tagName) {
+				case 'VALUE': return this.copy(node.textContent);
+				case 'KEY': return this.copy(node.parentNode.textContent);
+				case 'TAG': return this.copy(node.textContent);
+			}
 
+		}
 
 		html(node, level = 0) {
-			// console.log('render', node);
-			// console.log('attr', node.attributes)
 			if (node.nodeType == 3) {
-				// if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
 				if (node.nodeValue.trim()) return NODE('text').ADD(node.nodeValue);
 				else return '';
 			}
-			// let types = this.classList.contains('types');
-			// console.log('children', Array.from(node.children).map(x => x.tagName))
-			// let type = async x => types ? (await import('https://max.pub/lib/types.js')).default(x) : '';
-			// let type = x => this.type ? this.type(x) : '';
 
-			// <attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}' class='${this.type(x.value)} ${x.value}'>${x.value}</attribute>`).join('\n')}</attributes>
-			let hasChildren = node.childNodes.length ? true: false
-			let hasAttributes = node.hasAttributes() ? true : false
+			let children = Array.from(node.childNodes);
+			let attributes = Array.from(node.attributes);
 
-			let output = NODE('tag').ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
-			if (hasAttributes)
+			let output = NODE('tag', { 'on-tap': 'copyPart' }).ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
+			if (attributes.length)
 				output.ADD(NODE('attributes').ADD(
-					...Array.from(node.attributes).map(attr =>
+					...attributes.map(attr =>
 						NODE('attribute', { class: this.type(attr.value) }).ADD(
-							NODE('key').ADD(attr.name),
+							NODE('key', { 'on-tap': 'copyPart' }).ADD(' ' + attr.name),
 							NODE('c').ADD('="'),
-							NODE('value').ADD(attr.value),
+							NODE('value', { 'on-tap': 'copyPart' }).ADD(attr.value),
 							NODE('c').ADD('"'),
 						)),
-						
-				))
 
-			if (hasChildren)
+				))
+			if (children.length)
 				output.ADD(NODE('children').ADD(
 					NODE('c').ADD('>'),
-					...Array.from(node.childNodes).map(child => this.html(child))
+					...children.map(child => this.html(child))
 				),
 					NODE('c').ADD('</'), NODE('name').ADD(node.tagName), NODE('c').ADD('>')
 				)
 			else
 				output.ADD(NODE('c').ADD('/>'))
 
-
-
-			// let output = `<tag class='${node.hasAttributes() ? 'attributes' : ''} ${hasChildren ? 'children' : ''}'>
-			// 	<c>&lt;</c><name>${node.tagName}</name>
-			// 	<attributes>${Array.from(node.attributes).map(x => `<attribute class='${this.type(x.value)} ${x.value}'><key>${x.name}</key><value>${x.value}</value></attribute>`).join('\n')}</attributes>
-			// 	<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
-			// 	${hasChildren ? `<name>${node.tagName}</name>` : ''}
-			// 	</tag>`;
-			// console.log('html', html)
 			return output;
 		}
 
@@ -214,7 +213,11 @@
 	tag {
 		display: block;
 		margin-left: 2rem;
+	}
 
+	tag:hover>name {
+		cursor: pointer;
+		color: red;
 	}
 
 	attribute {
@@ -231,7 +234,9 @@
 		cursor: pointer;
 	}
 
+
 	attribute>value {
+		/* default value color */
 		color: #ff7;
 	}
 
@@ -239,13 +244,6 @@
 	text {
 		color: lightblue;
 	}
-
-	*::before,
-	*::after {
-		/* color: silver; */
-	}
-
-
 
 	.boolean.false {
 		color: #f77;
@@ -255,8 +253,8 @@
 		color: #7f7;
 	}
 
-	.int,
-	.real {
+	.int>value,
+	.real>value {
 		color: #7ff;
 	}
 
