@@ -39,10 +39,12 @@ STYLE.appendChild(document.createTextNode(`:host {
 		/* padding: .3rem; */
 	}
 	:host(:not(.copy)) aside [on-tap='copy'] {
-		display: none
+		color: transparent;
+		/* display: none */
 	}
 	:host(:not(.save)) aside [on-tap='save'] {
-		display: none
+		color: transparent;
+		/* display: none */
 	}
 	aside {
 		display: flex;

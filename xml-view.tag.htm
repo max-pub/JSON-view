@@ -1,7 +1,13 @@
 <htm>
-	<aside>
-		<a on-tap='copyAll'>copy</a>
-		<a on-tap='saveAll'>save</a>
+	<aside class='h-stack'>
+		<div class='h-stack'>
+			<a on-tap='copyAll'>copy</a>
+			<a on-tap='saveAll'>save</a>
+		</div>
+		<div class='h-stack'>
+			<a on-tap='pure'>pure</a>
+			<a on-tap='long'>long</a>
+		</div>
 	</aside>
 	<main></main>
 </htm>
@@ -61,7 +67,8 @@
 		// 		this.$view.Q('main', 1).innerHTML = html(new DOMParser().parseFromString(this.innerHTML, 'text/xml').firstChild);
 		// 	} catch { }
 		// }
-
+		pure() { this.classList.toggle('pure') }
+		long() { this.classList.toggle('long') }
 		copy(text) {
 			import('https://max.pub/lib/data.js').then(x => x.copy(text))
 		}
@@ -81,7 +88,6 @@
 				case 'KEY': return this.copy(node.parentNode.textContent);
 				case 'TAG': return this.copy(node.textContent);
 			}
-
 		}
 
 		html(node, level = 0) {
@@ -142,12 +148,14 @@
 		height: 100%;
 	}
 
-	:host(:not(.copy)) aside [on-tap='copy'] {
-		display: none
+	:host(:not(.copy)) aside [on-tap='copyAll'] {
+		color: transparent;
+		/* display: none */
 	}
 
-	:host(:not(.save)) aside [on-tap='save'] {
-		display: none
+	:host(:not(.save)) aside [on-tap='saveAll'] {
+		color: transparent;
+		/* display: none */
 	}
 
 
@@ -163,13 +171,17 @@
 		background-color: #444;
 	}
 
-	aside {
+	.h-stack {
 		display: flex;
 		justify-content: space-between;
 	}
 
+	aside div {
+		width: 20%;
+	}
+
 	aside a {
-		color: silver;
+		color: gray;
 		padding-bottom: .5rem;
 	}
 
@@ -180,8 +192,11 @@
 
 	c {
 		color: gray;
+		/* display: none; */
 	}
-
+	:host(.pure) c{
+		display: none;
+	}
 
 	/* tag {
 		display: block;
@@ -225,10 +240,16 @@
 		margin-left: 1rem;
 	}
 
+	:host(.long) attribute {
+		display: block;
+	}
+
 	attribute>key {
 		color: silver
 	}
-
+	:host(.pure) attribute>key{
+		margin-right: .5rem;
+	}
 	attribute:hover {
 		background: #444;
 		cursor: pointer;

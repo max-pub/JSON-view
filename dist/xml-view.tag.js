@@ -23,9 +23,15 @@ class XML {
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
 const HTML = document.createElement('template');
-HTML.innerHTML = `<aside>
-		<a on-tap='copyAll'>copy</a>
-		<a on-tap='saveAll'>save</a>
+HTML.innerHTML = `<aside class='h-stack'>
+		<div class='h-stack'>
+			<a on-tap='copyAll'>copy</a>
+			<a on-tap='saveAll'>save</a>
+		</div>
+		<div class='h-stack'>
+			<a on-tap='pure'>pure</a>
+			<a on-tap='long'>long</a>
+		</div>
 	</aside>
 	<main></main>`;
 let STYLE = document.createElement('style');
@@ -47,11 +53,13 @@ STYLE.appendChild(document.createTextNode(`:host {
 		width: 100%;
 		height: 100%;
 	}
-	:host(:not(.copy)) aside [on-tap='copy'] {
-		display: none
+	:host(:not(.copy)) aside [on-tap='copyAll'] {
+		color: transparent;
+		/* display: none */
 	}
-	:host(:not(.save)) aside [on-tap='save'] {
-		display: none
+	:host(:not(.save)) aside [on-tap='saveAll'] {
+		color: transparent;
+		/* display: none */
 	}
 	:host::-webkit-scrollbar {
 		width: .5rem;
@@ -62,12 +70,15 @@ STYLE.appendChild(document.createTextNode(`:host {
 	:host::-webkit-scrollbar-thumb {
 		background-color: #444;
 	}
-	aside {
+	.h-stack {
 		display: flex;
 		justify-content: space-between;
 	}
+	aside div {
+		width: 20%;
+	}
 	aside a {
-		color: silver;
+		color: gray;
 		padding-bottom: .5rem;
 	}
 	a:hover {
@@ -76,6 +87,10 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 	c {
 		color: gray;
+		/* display: none; */
+	}
+	:host(.pure) c{
+		display: none;
 	}
 	/* tag {
 		display: block;
@@ -109,8 +124,14 @@ STYLE.appendChild(document.createTextNode(`:host {
 		/* display: block; */
 		margin-left: 1rem;
 	}
+	:host(.long) attribute {
+		display: block;
+	}
 	attribute>key {
 		color: silver
+	}
+	:host(.pure) attribute>key{
+		margin-right: .5rem;
 	}
 	attribute:hover {
 		background: #444;
@@ -223,6 +244,8 @@ class WebTag extends HTMLElement {
 			this.$view.Q('main', 1).innerHTML = ''
 			this.$view.Q('main', 1).ADD(this.html(this.XML))
 		}
+		pure() { this.classList.toggle('pure') }
+		long() { this.classList.toggle('long') }
 		copy(text) {
 			import('https://max.pub/lib/data.js').then(x => x.copy(text))
 		}

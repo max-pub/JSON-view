@@ -43,6 +43,12 @@
 	<br />
 
 	<h2>xml-view</h2>
+	<div class='toggles'>
+		<a onclick='xml.toggle("save")'>save</a>
+		<a onclick='xml.toggle("copy")'>copy</a>
+		<a onclick='xml.toggle("meta")'>meta</a>
+		<a onclick='xml.toggle("compact")'>compact</a>
+	</div>
 	<xml-view class='save copy types scroll monospace'>
 		<person id='12345'>
 			<birth date='2020-05-05' time='12:30:00'></birth>
@@ -79,4 +85,5 @@
 
 <script>
 	json = document.querySelector('json-view').classList
+	xml = document.querySelector('xml-view').classList
 </script>
