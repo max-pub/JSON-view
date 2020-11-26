@@ -89,7 +89,10 @@ STYLE.appendChild(document.createTextNode(`:host {
 		color: gray;
 		/* display: none; */
 	}
-	:host(.pure) c{
+	:host(.pure) c {
+		display: none;
+	}
+	:host(.pure) .close {
 		display: none;
 	}
 	/* tag {
@@ -127,10 +130,14 @@ STYLE.appendChild(document.createTextNode(`:host {
 	:host(.long) attribute {
 		display: block;
 	}
+	:host(.long) text {
+		margin-left: 1rem;
+		display: block;
+	}
 	attribute>key {
 		color: silver
 	}
-	:host(.pure) attribute>key{
+	:host(.pure) attribute>key {
 		margin-right: .5rem;
 	}
 	attribute:hover {
@@ -284,11 +291,10 @@ class WebTag extends HTMLElement {
 						)),
 				))
 			if (children.length)
-				output.ADD(NODE('children').ADD(
-					NODE('c').ADD('>'),
+				output.ADD(NODE('c').ADD('>'), NODE('children').ADD(
 					...children.map(child => this.html(child))
 				),
-					NODE('c').ADD('</'), NODE('name').ADD(node.tagName), NODE('c').ADD('>')
+					NODE('c').ADD('</'), NODE('name',{class:'close'}).ADD(node.tagName), NODE('c').ADD('>')
 				)
 			else
 				output.ADD(NODE('c').ADD('/>'))
