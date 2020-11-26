@@ -39,7 +39,7 @@
 			this.render();
 			// html(v).then(x => this.$view.Q('main', 1).innerHTML = x);
 		}
-		get text() {
+		get text(){
 			return new XMLSerializer().serializeToString(this.XML)
 		}
 		async render() {
@@ -47,9 +47,7 @@
 				this.type = (await import('https://max.pub/lib/types.js')).default;//.then(x => {console.log(x.default);this.type = x.default})
 			console.log('type checker', this.type);
 			console.log('render now')
-			// this.$view.Q('main', 1).innerHTML = this.html(this.XML);
-
-			this.$view.Q('main', 1).innerHTML = new XMLSerializer().serializeToString(this.html(this.XML))
+			this.$view.Q('main', 1).innerHTML = this.html(this.XML);
 		}
 
 		// show() {
@@ -71,8 +69,7 @@
 			// console.log('render', node);
 			// console.log('attr', node.attributes)
 			if (node.nodeType == 3) {
-				// if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
-				if (node.nodeValue.trim()) return NODE('text').ADD(node.nodeValue);
+				if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
 				else return '';
 			}
 			// let types = this.classList.contains('types');
@@ -81,40 +78,11 @@
 			// let type = x => this.type ? this.type(x) : '';
 
 			// <attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}' class='${this.type(x.value)} ${x.value}'>${x.value}</attribute>`).join('\n')}</attributes>
-			let hasChildren = node.childNodes.length ? true: false
-			let hasAttributes = node.hasAttributes() ? true : false
-
-			let output = NODE('tag').ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
-			if (hasAttributes)
-				output.ADD(NODE('attributes').ADD(
-					...Array.from(node.attributes).map(attr =>
-						NODE('attribute', { class: this.type(attr.value) }).ADD(
-							NODE('key').ADD(attr.name),
-							NODE('c').ADD('="'),
-							NODE('value').ADD(attr.value),
-							NODE('c').ADD('"'),
-						)),
-						
-				))
-
-			if (hasChildren)
-				output.ADD(NODE('children').ADD(
-					NODE('c').ADD('>'),
-					...Array.from(node.childNodes).map(child => this.html(child))
-				),
-					NODE('c').ADD('</'), NODE('name').ADD(node.tagName), NODE('c').ADD('>')
-				)
-			else
-				output.ADD(NODE('c').ADD('/>'))
-
-
-
-			// let output = `<tag class='${node.hasAttributes() ? 'attributes' : ''} ${hasChildren ? 'children' : ''}'>
-			// 	<c>&lt;</c><name>${node.tagName}</name>
-			// 	<attributes>${Array.from(node.attributes).map(x => `<attribute class='${this.type(x.value)} ${x.value}'><key>${x.name}</key><value>${x.value}</value></attribute>`).join('\n')}</attributes>
-			// 	<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
-			// 	${hasChildren ? `<name>${node.tagName}</name>` : ''}
-			// 	</tag>`;
+			let output = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
+				<name>${node.tagName}</name>
+				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}' class='${this.type(x.value)} ${x.value}'><key>${x.name}</key><value>${x.value}</value></attribute>`).join('\n')}</attributes>
+				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
+				</tag>`;
 			// console.log('html', html)
 			return output;
 		}
@@ -136,8 +104,7 @@
 		scrollbar-color: #444 #333;
 		scrollbar-width: thin;
 	}
-
-	:host(.scroll) {
+	:host(.scroll){
 		overflow: auto;
 		width: 100%;
 		height: 100%;
@@ -179,36 +146,7 @@
 		color: cornflowerblue
 	}
 
-	c {
-		color: gray;
-	}
 
-
-	/* tag {
-		display: block;
-		margin-left: 2rem;
-
-	}
-
-	tag::before {
-		content: '<';
-		color: gray;
-	}
-
-	tag::after {
-		content: '>';
-		color: gray;
-	}
-
-	attribute>value::before {
-		content: '="';
-		color: gray;
-	}
-
-	attribute>value::after {
-		content: '"';
-		color: gray;
-	} */
 
 
 	tag {
@@ -217,24 +155,39 @@
 
 	}
 
+	tag::before {
+		content: '<'attr(name) '>';
+	}
+
+	tag.attributes::before {
+		content: '<'attr(name) '';
+	}
+
+	attribute:last-child::after {
+		content: '"/>'
+	}
+
+	tag.children>*>attribute:last-child::after {
+		content: '">'
+	}
+
+	tag.children::after {
+		content: '</'attr(name) '>';
+	}
+
 	attribute {
-		/* display: block; */
-		margin-left: 1rem;
-	}
-
-	attribute>key {
-		color: silver
-	}
-
-	attribute:hover {
-		background: #444;
-		cursor: pointer;
-	}
-
-	attribute>value {
 		color: #ff7;
 	}
 
+	attribute::before {
+		content: attr(name) '="';
+		color: silver;
+	}
+
+	attribute::after {
+		content: '"';
+		color: silver;
+	}
 
 	text {
 		color: lightblue;
@@ -255,14 +208,10 @@
 		color: #7f7;
 	}
 
-	.int,
-	.real {
+	.int,.real {
 		color: #7ff;
 	}
-
-	.time>value,
-	.date>value,
-	.datetime>value {
+	.time,.date,.datetime{
 		color: #f7f;
 	}
 </style>

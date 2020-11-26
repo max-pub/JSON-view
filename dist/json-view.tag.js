@@ -7,6 +7,11 @@ function NODE(name, attributes = {}, children = []) {
 		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
 	return node;
 }
+Element.prototype.ADD = function addChildren(...children){
+	for (let child of children)
+		this.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
+	return this;	
+}
 class XML {
 	static parse(string, type = 'xml') {
 		return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), 'text/' + type)

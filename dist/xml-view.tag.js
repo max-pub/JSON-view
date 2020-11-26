@@ -7,6 +7,11 @@ function NODE(name, attributes = {}, children = []) {
 		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
 	return node;
 }
+Element.prototype.ADD = function addChildren(...children){
+	for (let child of children)
+		this.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
+	return this;	
+}
 class XML {
 	static parse(string, type = 'xml') {
 		return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), 'text/' + type)
@@ -37,7 +42,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 		scrollbar-color: #444 #333;
 		scrollbar-width: thin;
 	}
-	:host(.scroll){
+	:host(.scroll) {
 		overflow: auto;
 		width: 100%;
 		height: 100%;
@@ -69,35 +74,46 @@ STYLE.appendChild(document.createTextNode(`:host {
 		cursor: pointer;
 		color: cornflowerblue
 	}
-	tag {
+	c {
+		color: gray;
+	}
+	/* tag {
 		display: block;
 		margin-left: 2rem;
 	}
 	tag::before {
-		content: '<'attr(name) '>';
+		content: '<';
+		color: gray;
 	}
-	tag.attributes::before {
-		content: '<'attr(name) '';
+	tag::after {
+		content: '>';
+		color: gray;
 	}
-	attribute:last-child::after {
-		content: '"/>'
+	attribute>value::before {
+		content: '="';
+		color: gray;
 	}
-	tag.children>*>attribute:last-child::after {
-		content: '">'
-	}
-	tag.children::after {
-		content: '</'attr(name) '>';
+	attribute>value::after {
+		content: '"';
+		color: gray;
+	} */
+	tag {
+		display: block;
+		margin-left: 2rem;
 	}
 	attribute {
+		/* display: block; */
+		margin-left: 1rem;
+	}
+	attribute>key {
+		color: silver
+	}
+	attribute:hover {
+		background: #444;
+		cursor: pointer;
+	}
+	attribute>value {
 		color: #ff7;
-	}
-	attribute::before {
-		content: attr(name) '="';
-		color: silver;
-	}
-	attribute::after {
-		content: '"';
-		color: silver;
 	}
 	text {
 		color: lightblue;
@@ -112,10 +128,13 @@ STYLE.appendChild(document.createTextNode(`:host {
 	.boolean.true {
 		color: #7f7;
 	}
-	.int,.real {
+	.int,
+	.real {
 		color: #7ff;
 	}
-	.time,.date,.datetime{
+	.time>value,
+	.date>value,
+	.datetime>value {
 		color: #f7f;
 	}`));
 function QQ(query, i) {
@@ -192,7 +211,7 @@ class WebTag extends HTMLElement {
 			this.XML = v;
 			this.render();
 		}
-		get text(){
+		get text() {
 			return new XMLSerializer().serializeToString(this.XML)
 		}
 		async render() {
@@ -200,7 +219,7 @@ class WebTag extends HTMLElement {
 				this.type = (await import('https://max.pub/lib/types.js')).default;//.then(x => {console.log(x.default);this.type = x.default})
 			console.log('type checker', this.type);
 			console.log('render now')
-			this.$view.Q('main', 1).innerHTML = this.html(this.XML);
+			this.$view.Q('main', 1).innerHTML = new XMLSerializer().serializeToString(this.html(this.XML))
 		}
 		copy() {
 			import('https://max.pub/lib/data.js').then(x => x.copy(this.text))
@@ -210,13 +229,31 @@ class WebTag extends HTMLElement {
 		}
 		html(node, level = 0) {
 			if (node.nodeType == 3) {
-				if (node.nodeValue.trim()) return '<text>' + node.nodeValue + '</text>';
+				if (node.nodeValue.trim()) return NODE('text').ADD(node.nodeValue);
 				else return '';
 			}
-			let output = `<tag name='${node.tagName}' class='${node.hasAttributes() ? 'attributes' : ''} ${node.childNodes.length ? 'children' : ''}'>
-				<attributes>${Array.from(node.attributes).map(x => `<attribute name='${x.name}' class='${this.type(x.value)} ${x.value}'>${x.value}</attribute>`).join('\n')}</attributes>
-				<children>${Array.from(node.childNodes).map(x => this.html(x)).join('\n')}</children>
-				</tag>`;
+			let hasChildren = node.childNodes.length ? true: false
+			let hasAttributes = node.hasAttributes() ? true : false
+			let output = NODE('tag').ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
+			if (hasAttributes)
+				output.ADD(NODE('attributes').ADD(
+					...Array.from(node.attributes).map(attr =>
+						NODE('attribute', { class: this.type(attr.value) }).ADD(
+							NODE('key').ADD(attr.name),
+							NODE('c').ADD('="'),
+							NODE('value').ADD(attr.value),
+							NODE('c').ADD('"'),
+						)),
+				))
+			if (hasChildren)
+				output.ADD(NODE('children').ADD(
+					NODE('c').ADD('>'),
+					...Array.from(node.childNodes).map(child => this.html(child))
+				),
+					NODE('c').ADD('</'), NODE('name').ADD(node.tagName), NODE('c').ADD('>')
+				)
+			else
+				output.ADD(NODE('c').ADD('/>'))
 			return output;
 		}
 	}
