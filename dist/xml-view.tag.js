@@ -1,25 +1,19 @@
 console.log('xml-view', import.meta.url);
-export default class XML {
-    static parse(string, type = 'text/xml') { // like JSON.parse
-        return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), type)
-    }
-    static stringify(DOM) { // like JSON.stringify
-        return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
-    }
-     static async fetch(url) {
-        return XML.parse(await fetch(url).then(x => x.text()))
-    }
-    static tag(tagName, attributes){
-        let tag = XML.parse(`<${tagName}/>`);
-        for(let key in attributes) tag.firstChild.setAttribute(key,attributes[key]);
-        return tag.firstChild;
-    }
-    static transform(xml, xsl, stringOutput = true) {
-        let processor = new XSLTProcessor();
-        processor.importStylesheet(typeof xsl == 'string' ? XML.parse(xsl) : xsl);
-        let output = processor.transformToDocument(typeof xml == 'string' ? XML.parse(xml) : xml);
-        return stringOutput ? XML.stringify(output) : output;
-    }
+function NODE(name, attributes = {}, children = []) {
+	let node = document.createElement(name);
+	for (let key in attributes)
+		node.setAttribute(key, attributes[key]);
+	for (let child of children)
+		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
+	return node;
+}
+class XML {
+	static parse(string, type = 'xml') {
+		return new DOMParser().parseFromString(string.replace(/xmlns=".*?"/g, ''), 'text/' + type)
+	}
+	static stringify(DOM) {
+		return new XMLSerializer().serializeToString(DOM).replace(/xmlns=".*?"/g, '')
+	}
 }
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
@@ -33,13 +27,15 @@ let STYLE = document.createElement('style');
 STYLE.appendChild(document.createTextNode(`:host {
 		display: inline-block;
 		background: #333;
-		tab-size: 4;
-		-moz-tab-size: 4;
+		/* tab-size: 4; */
+		/* -moz-tab-size: 4; */
 		font-size: 14px;
 		text-align: left;
 		color: white;
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
+		scrollbar-color: #444 #333;
+		scrollbar-width: thin;
 	}
 	:host(.scroll){
 		overflow: auto;
@@ -51,6 +47,15 @@ STYLE.appendChild(document.createTextNode(`:host {
 	}
 	:host(:not(.save)) aside [on-tap='save'] {
 		display: none
+	}
+	:host::-webkit-scrollbar {
+		width: .5rem;
+	}
+	:host::-webkit-scrollbar-track {
+		box-shadow: inset 0 0 6px #333;
+	}
+	:host::-webkit-scrollbar-thumb {
+		background-color: #444;
 	}
 	aside {
 		display: flex;
@@ -215,4 +220,4 @@ class WebTag extends HTMLElement {
 			return output;
 		}
 	}
-window.customElements.define('xml-view', xml_view)
+window.customElements.define('xml-view', xml_view)
