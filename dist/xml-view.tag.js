@@ -1,10 +1,9 @@
 console.log('xml-view', import.meta.url);
-function NODE(name, attributes = {}, children = []) {
+function NODE(name, attributes = {}, ...children ) {
 	let node = document.createElement(name);
 	for (let key in attributes)
 		node.setAttribute(key, attributes[key]);
-	for (let child of children)
-		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
+	node.ADD(...children)
 	return node;
 }
 Element.prototype.ADD = function addChildren(...children){
@@ -92,9 +91,12 @@ STYLE.appendChild(document.createTextNode(`:host {
 	:host(.pure) c {
 		display: none;
 	}
-	:host(.pure) .close {
+	:host(.pure) close {
 		display: none;
 	}
+	.xxxxx {margin-left: -1rem;}
+	.xxxxx>open, .xxxxx>close{display: none;}
+	/* .frame{display: none;} */
 	/* tag {
 		display: block;
 		margin-left: 2rem;
@@ -117,7 +119,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 	} */
 	tag {
 		display: block;
-		margin-left: 2rem;
+		margin-left: 1rem;
 	}
 	tag:hover>name {
 		cursor: pointer;
@@ -140,9 +142,14 @@ STYLE.appendChild(document.createTextNode(`:host {
 	:host(.pure) attribute>key {
 		margin-right: .5rem;
 	}
-	attribute:hover {
-		background: #444;
+	attribute:hover>key {
 		cursor: pointer;
+		color: red;
+	}
+	attribute>value:hover,
+	text:hover {
+		cursor: pointer;
+		background: #444;
 	}
 	attribute>value {
 		/* default value color */
@@ -236,7 +243,7 @@ class WebTag extends HTMLElement {
 			this.value = this.innerHTML;
 		}
 		set value(v) {
-			if (typeof v == 'string') v = new DOMParser().parseFromString(`<x>${v}</x>`, 'text/xml').firstChild;
+			if (typeof v == 'string') v = new DOMParser().parseFromString(`<xxxxx>${v}</xxxxx>`, 'text/xml').firstChild;
 			this.XML = v;
 			this.render();
 		}
@@ -267,6 +274,7 @@ class WebTag extends HTMLElement {
 		}
 		copyPart(node) {
 			switch (node.tagName) {
+				case 'TEXT': return this.copy(node.textContent);
 				case 'VALUE': return this.copy(node.textContent);
 				case 'KEY': return this.copy(node.parentNode.textContent);
 				case 'TAG': return this.copy(node.textContent);
@@ -274,14 +282,15 @@ class WebTag extends HTMLElement {
 		}
 		html(node, level = 0) {
 			if (node.nodeType == 3) {
-				if (node.nodeValue.trim()) return NODE('text').ADD(node.nodeValue);
+				if (node.nodeValue.trim()) return NODE('text', { 'on-tap': 'copyPart' }).ADD(node.nodeValue);
 				else return '';
 			}
 			let children = Array.from(node.childNodes);
 			let attributes = Array.from(node.attributes);
-			let output = NODE('tag', { 'on-tap': 'copyPart' }).ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
+			let open = NODE('open').ADD(NODE('c').ADD('<'), NODE('name').ADD(node.tagName))
+			let output = NODE('tag', { 'on-tap': 'copyPart', class: node.tagName }).ADD(open)
 			if (attributes.length)
-				output.ADD(NODE('attributes').ADD(
+				open.ADD(NODE('attributes').ADD(
 					...attributes.map(attr =>
 						NODE('attribute', { class: this.type(attr.value) }).ADD(
 							NODE('key', { 'on-tap': 'copyPart' }).ADD(' ' + attr.name),
@@ -290,14 +299,18 @@ class WebTag extends HTMLElement {
 							NODE('c').ADD('"'),
 						)),
 				))
+			let fullClose = NODE('close').ADD(NODE('c').ADD('</'), NODE('name').ADD(node.tagName), NODE('c').ADD('>'))
+			let halfClose = NODE('close').ADD(NODE('c').ADD('/>'))
+			if(children.length)
+				open.ADD(NODE('c').ADD('>'))
 			if (children.length)
-				output.ADD(NODE('c').ADD('>'), NODE('children').ADD(
+				output.ADD( NODE('children').ADD(
 					...children.map(child => this.html(child))
 				),
-					NODE('c').ADD('</'), NODE('name',{class:'close'}).ADD(node.tagName), NODE('c').ADD('>')
+					fullClose
 				)
 			else
-				output.ADD(NODE('c').ADD('/>'))
+				output.ADD(this.classList.contains('html') ? fullClose : halfClose)
 			return output;
 		}
 	}

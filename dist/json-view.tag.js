@@ -1,10 +1,9 @@
 console.log('json-view', import.meta.url);
-function NODE(name, attributes = {}, children = []) {
+function NODE(name, attributes = {}, ...children ) {
 	let node = document.createElement(name);
 	for (let key in attributes)
 		node.setAttribute(key, attributes[key]);
-	for (let child of children)
-		node.appendChild(typeof child == 'string' ? document.createTextNode(child) : child);
+	node.ADD(...children)
 	return node;
 }
 Element.prototype.ADD = function addChildren(...children){
