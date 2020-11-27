@@ -94,8 +94,13 @@ STYLE.appendChild(document.createTextNode(`:host {
 	:host(.pure) close {
 		display: none;
 	}
-	.xxxxx {margin-left: -1rem;}
-	.xxxxx>open, .xxxxx>close{display: none;}
+	.xxxxx {
+		margin-left: -1rem;
+	}
+	.xxxxx>open,
+	.xxxxx>close {
+		display: none;
+	}
 	/* .frame{display: none;} */
 	/* tag {
 		display: block;
@@ -121,7 +126,7 @@ STYLE.appendChild(document.createTextNode(`:host {
 		display: block;
 		margin-left: 1rem;
 	}
-	tag:hover>name {
+	tag:hover>*>name {
 		cursor: pointer;
 		color: red;
 	}
@@ -229,10 +234,20 @@ class WebTag extends HTMLElement {
 			HTML = new DOMParser().parseFromString(HTML, 'text/html').firstChild
 		this.$view.appendChild(HTML);
 	}
+	$event(name, options) {
+		this.dispatchEvent(new CustomEvent(name, {
+			bubbles: true,
+			composed: true,
+			cancelable: true,
+			detail: options
+		}));
+	}
 };
 	class xml_view extends WebTag {
 		$onReady() {
 			this.showDOM()
+			if (this.classList.contains('noti')) 
+				import('https://max.pub/lib/notify.js')
 		}
 		$onDataChange() {
 			this.showDOM()
@@ -262,6 +277,7 @@ class WebTag extends HTMLElement {
 		long() { this.classList.toggle('long') }
 		copy(text) {
 			import('https://max.pub/lib/data.js').then(x => x.copy(text))
+			this.$event('notification', { text: 'copied to clipboard' })
 		}
 		save(text) {
 			import('https://max.pub/lib/data.js').then(x => x.save(text, 'data.xml', 'text/xml'))
@@ -301,10 +317,10 @@ class WebTag extends HTMLElement {
 				))
 			let fullClose = NODE('close').ADD(NODE('c').ADD('</'), NODE('name').ADD(node.tagName), NODE('c').ADD('>'))
 			let halfClose = NODE('close').ADD(NODE('c').ADD('/>'))
-			if(children.length)
+			if (children.length)
 				open.ADD(NODE('c').ADD('>'))
 			if (children.length)
-				output.ADD( NODE('children').ADD(
+				output.ADD(NODE('children').ADD(
 					...children.map(child => this.html(child))
 				),
 					fullClose
