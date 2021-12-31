@@ -2,23 +2,30 @@
 <style>
 	/* @import url('https://max.pub/css/publicSans.css'); */
 	@import url('https://max.pub/css/fira.css');
+
 	json-view,
-	xml-view {
+	xml-view,
+	hi-lite {
 		width: 90%;
 		padding: 1rem;
 	}
 
-	.toggles a{margin: 0 2em;}
-	json-view{
+	.toggles a {
+		margin: 0 2em;
+	}
+
+	json-view {
 		/* filter: invert(1); */
 	}
-	xml-view{
-		height:300px;
+
+	xml-view {
+		height: 300px;
 	}
 </style>
 
 <script type="module" src='dist/json-view.tag.js'></script>
 <script type="module" src='dist/xml-view.tag.js'></script>
+<script type="module" src='dist/hi-lite.tag.js'></script>
 
 <article>
 	<h1>hilite demo</h1>
@@ -29,9 +36,39 @@
 	<div class='toggles'>
 		<a onclick='json.toggle("save")'>save</a>
 		<a onclick='json.toggle("copy")'>copy</a>
-		<a onclick='json.toggle("meta")'>meta</a>
-		<a onclick='json.toggle("compact")'>compact</a>
+		<a onclick='json.toggle("pure")'>pure</a>
+		<a onclick='json.toggle("long")'>long</a>
 	</div>
+	<hi-lite class='json save copy types  monospace html noti pure long'>
+		{"number":123, "string":"abc","date":"2020-01-01", "URL":"https://www.google.com/search", "bool1":true,
+		"bool2":false, "dict":{"a":11,"b":"BB"},
+		"long-list":["very","long","list","with",723,"items","that","cause","a break"],
+		"list":["one","two",333],"x":null}
+	</hi-lite>
+
+
+	<h2>xml-view</h2>
+	<div class='toggles'>
+		<a onclick='xml.toggle("save")'>save</a>
+		<a onclick='xml.toggle("copy")'>copy</a>
+		<a onclick='xml.toggle("pure")'>pure</a>
+		<a onclick='xml.toggle("long")'>long</a>
+	</div>
+	<hi-lite class='xml save copy types  monospace html noti pure long'>
+		<person id='12345'>
+			<birth date='2020-05-05' time='12:30:00'></birth>
+			<name given='John' family='Doe'></name>
+			<children count='1'>
+				<child id='22222'></child>
+			</children>
+			<biography>
+				lived a great life
+			</biography>
+		</person>
+	</hi-lite>
+	<br />
+	<br />
+	<br />
 	<json-view class='save copy compact'>
 		{"number":123, "string":"abc","date":"2020-01-01", "URL":"https://www.google.com/search", "bool1":true,
 		"bool2":false, "dict":{"a":11,"b":"BB"},
@@ -69,7 +106,7 @@
 			<biography>
 				lived a great life
 			</biography>
-		</person>		
+		</person>
 		<person id='12345'>
 			<birth date='2020-05-05' time='12:30:00'></birth>
 			<name given='John' family='Doe'></name>

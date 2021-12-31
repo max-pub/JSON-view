@@ -1,13 +1,7 @@
 <htm>
-	<aside class='h-stack'>
-		<div class='h-stack'>
-			<a on-tap='copyAll'>copy</a>
-			<a on-tap='saveAll'>save</a>
-		</div>
-		<div class='h-stack'>
-			<a on-tap='pure'>pure</a>
-			<a on-tap='long'>long</a>
-		</div>
+	<aside>
+		<a on-tap='copy'>copy</a>
+		<a on-tap='save'>save</a>
 	</aside>
 	<main></main>
 </htm>
@@ -38,25 +32,17 @@
 			let typ = typeof (data);
 			if (Array.isArray(data)) typ = 'array';
 			if (data === null) typ = 'null';
-			let q = '<c>"</c>';
-			// let output = '';
+			let output = '';
 			let len = JSON.stringify(data).length;
 			switch (typ) {
 				case 'object':
 				case 'array':
-					// console.log('keys', Object.keys(data))
-					let c1 = typ == 'object' ? q : '';
-					let keys = Object.keys(data)
-					// let c2 = typ == 'object' ? '<c>:</c>' : '';
-					return `<list class='${typ} ${len < 50 ? 'short' : 'long'}'>
-						<c>${typ=='object'?'{':'['}</c>
-						${keys.map((key, i) => `<item level='${level}'>${typ == 'object' ? `${c1}<key>${key}</key>${c1}<c>:</c>` : ''}${this.html(data[key], level + 1)}${i < keys.length-1 ? '<c>,</c>' : ''}</item>`).join('')}
-						<c>${typ=='object'?'}':']'}</c>
-						</list>`;
+					for (let key in data)
+						output += `<item level='${level}'><key>${key}</key>${this.html(data[key], level + 1)}</item>`;
+					return `<list class='${typ} ${len < 50 ? 'short' : 'long'}'>${output}</list>`;
 
 				default:
-					let c = typ == 'string' ? q : '';
-					return c + `<value class='${typ} ${data}'>${data}</value>` + c;
+					return `<value class='${typ} ${data}'>${data}</value>`;
 
 			}
 
@@ -76,46 +62,24 @@
 		/* padding: .3rem; */
 	}
 
-	:host(.scroll) {
-		overflow: auto;
-		width: 100%;
-		height: 100%;
-	}
 
-	:host(:not(.copy)) aside [on-tap='copyAll'] {
+	:host(:not(.copy)) aside [on-tap='copy'] {
 		color: transparent;
 		/* display: none */
 	}
 
-	:host(:not(.save)) aside [on-tap='saveAll'] {
+	:host(:not(.save)) aside [on-tap='save'] {
 		color: transparent;
 		/* display: none */
 	}
 
-
-	:host::-webkit-scrollbar {
-		width: .5rem;
-	}
-
-	:host::-webkit-scrollbar-track {
-		box-shadow: inset 0 0 6px #333;
-	}
-
-	:host::-webkit-scrollbar-thumb {
-		background-color: #444;
-	}
-
-	.h-stack {
+	aside {
 		display: flex;
 		justify-content: space-between;
 	}
 
-	aside div {
-		width: 20%;
-	}
-
 	aside a {
-		color: gray;
+		color: silver;
 		padding-bottom: .5rem;
 	}
 
@@ -146,23 +110,62 @@
 
 
 
-
-	item {
-		margin-left: 1rem;
+	.object::before {
+		content: '{';
 	}
 
+	.object::after {
+		content: '}';
+	}
 
+	.array::before {
+		content: '[';
+	}
+
+	.array>item>key {
+		display: none;
+	}
+
+	.array::after {
+		content: ']';
+	}
+
+	item {
+		margin-left: 2rem;
+	}
+
+	:host(.meta) item::after {
+		content: ', ';
+	}
+
+	:host(.meta) item:last-child::after {
+		content: '';
+	}
 
 	key {
 		color: white;
 		/* font-weight: bold; */
 	}
 
-
-	c {
-		color: gray;
-		display: inline-block;
+	:host(.meta) key::before {
+		content: '"';
 	}
+
+	:host(.meta) key::after {
+		content: '": ';
+	}
+	key::after {
+		content: ": "
+	}
+
+	:host(.meta) .string::before {
+		content: '"';
+	}
+
+	:host(.meta) .string::after {
+		content: '"';
+	}
+
 
 	.string {
 		color: #ff7;

@@ -1,0 +1,267 @@
+<htm>
+	<header class='h-stack'>
+		<!-- <div class='h-stack'> -->
+			<a on-tap='copyAll'>copy</a>
+			<a on-tap='saveAll'>save</a>
+		<!-- </div>
+		<div class='h-stack'> -->
+			<a on-tap='types'>types</a>
+			<a on-tap='pure'>pure</a>
+			<a on-tap='long'>long</a>
+		<!-- </div> -->
+	</header>
+	<style id='style'></style>
+	<main></main>
+</htm>
+
+<script>
+	// import typeOf from '../type.js';
+
+
+
+
+	class {
+
+
+		$onReady() {
+			this.setData()
+			this.$view.Q('main', 1).addEventListener('click', e => this.click(e))
+			if (this.classList.contains('noti'))
+				import('https://max.pub/lib/notify.js')
+		}
+		$onDataChange() {
+			this.setData()
+		}
+
+		// type() { return '' } // default, overwritten by external type-checker
+
+		setData() {
+			if (!this.innerHTML.trim()) return;
+			this.value = this.innerHTML;
+		}
+		set value(v) {
+			// if (typeof v == 'string') v = new DOMParser().parseFromString(`<xxxxx>${v}</xxxxx>`, 'text/xml').firstChild;
+			this._value = v;
+			this.render();
+			// html(v).then(x => this.$view.Q('main', 1).innerHTML = x);
+		}
+		get value() {
+			return this._value
+		}
+		async render() {
+			// if (this.classList.contains('types'))
+			// 	this.type = (await import('https://max.pub/lib/types.js')).default;//.then(x => {console.log(x.default);this.type = x.default})
+			let mod = {}
+			if (this.classList.contains('json'))
+				mod = await import('../json.js')
+			if (this.classList.contains('xml'))
+				mod = await import('../xml.js')
+			console.log('mod',mod)
+			if (!mod.converter) return;
+			this.$view.Q('#style', 1).textContent = mod.style;
+			// console.log('type checker', this.type);
+			// console.log('render now')
+			this.$view.Q('main', 1).innerHTML = ''
+			this.$view.Q('main', 1).ADD(mod.converter(this.value))
+			if (this.classList.contains('types')) {
+				let type = (await import('https://max.pub/lib/types.js')).default;//.then(x => {console.log(x.default);this.type = x.default})
+				for (let value of this.$view.Q('value')) {
+					value.classList.add(type(value.textContent))
+					// console.log('value', value);
+
+				}
+			}
+		}
+
+		pure() { this.classList.toggle('pure') }
+		long() { this.classList.toggle('long') }
+		copy(text) {
+			import('https://max.pub/lib/data.js').then(x => x.copy(text))
+			this.$event('notification', { text: 'copied to clipboard' })
+			return text;
+		}
+		save(text) {
+			import('https://max.pub/lib/data.js').then(x => x.save(text, 'data.xml', 'text/xml'))
+			this.$event('notification', { text: 'download initiated' })
+		}
+		copyAll() {
+			this.copy(this.text);
+		}
+		saveAll() {
+			this.save(this.text);
+		}
+		copyPart(node) {
+			// console.log('copy', node)
+			console.log('part', node.tagName, node.textContent)
+			switch (node.tagName) {
+				case 'TEXT': return this.copy(node.textContent);
+				case 'VALUE': return this.copy(node.textContent);
+				case 'KEY': return this.copy(node.parentNode.textContent);
+				case 'TAG': return this.copy(node.textContent);
+			}
+		}
+
+		click(event) {
+			console.log('click', event.target)
+			console.log('copied', this.copyPart(event.target))
+		}
+	}
+</script>
+
+<style>
+	:host {
+		display: inline-block;
+		background: #333;
+		/* tab-size: 4; */
+		/* -moz-tab-size: 4; */
+		font-size: 14px;
+		text-align: left;
+		color: white;
+		font-family: "Lucida Console", Monaco, monospace;
+		/* padding: .3rem; */
+		scrollbar-color: #444 #333;
+		scrollbar-width: thin;
+	}
+
+	:host(.scroll) {
+		overflow: auto;
+		width: 100%;
+		height: 100%;
+	}
+	:host::-webkit-scrollbar {
+		width: .5rem;
+	}
+
+	:host::-webkit-scrollbar-track {
+		box-shadow: inset 0 0 6px #333;
+	}
+
+	:host::-webkit-scrollbar-thumb {
+		background-color: #444;
+	}
+
+
+
+	:host(:not(.copy)) header [on-tap='copyAll'] {
+		color: transparent;
+		/* display: none */
+	}
+
+	:host(:not(.save)) header [on-tap='saveAll'] {
+		color: transparent;
+		/* display: none */
+	}
+
+
+	kv{margin-left:1rem;}
+
+	.h-stack {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	header div {
+		width: 20%;
+	}
+
+	header a {
+		color: gray;
+		padding-bottom: .5rem;
+	}
+
+	a:hover {
+		cursor: pointer;
+		color: cornflowerblue
+	}
+
+	c {
+		color: gray;
+		/* display: none; */
+	}
+
+	:host(.pure) c {
+		display: none;
+	}
+
+	:host(.pure) close {
+		display: none;
+	}
+
+	.xxxxx {
+		margin-left: -1rem;
+	}
+
+	.xxxxx>open,
+	.xxxxx>close {
+		display: none;
+	}
+
+
+
+	block {
+		display: block;
+		margin-left: 1rem;
+	}
+
+	block:hover>*>name {
+		cursor: pointer;
+		color: red;
+	}
+
+
+	:host(.long) kv {
+		display: block;
+	}
+
+
+
+	key {
+		color: silver
+	}
+
+	:host(.pure) key {
+		margin-right: .5rem;
+	}
+
+
+	kv:hover>key {
+		cursor: pointer;
+		color: red;
+	}
+
+	kv>value:hover {
+		cursor: pointer;
+		background: #444;
+	}
+
+
+	value {
+		/* default value color */
+		color: #ff7;
+	}
+
+
+
+	.boolean.false {
+		color: #f77;
+	}
+
+	.boolean.true {
+		color: #7f7;
+	}
+
+	.number,
+	.int,
+	.real {
+		color: #7ff;
+	}
+
+	.time,
+	.date,
+	.datetime {
+		color: #f7f;
+	}
+	.url,.email{
+		color: #99f
+	}
+</style>

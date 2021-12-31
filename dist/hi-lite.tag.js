@@ -1,4 +1,4 @@
-console.log('json-view', import.meta.url);
+console.log('hi-lite', import.meta.url);
 function NODE(name, attributes = {}, ...children ) {
 	let node = document.createElement(name);
 	for (let key in attributes)
@@ -22,39 +22,37 @@ class XML {
 XMLDocument.prototype.stringify = XML.stringify
 Element.prototype.stringify = XML.stringify
 const HTML = document.createElement('template');
-HTML.innerHTML = `<aside class='h-stack'>
-		<div class='h-stack'>
+HTML.innerHTML = `<header class='h-stack'>
+		<!-- <div class='h-stack'> -->
 			<a on-tap='copyAll'>copy</a>
 			<a on-tap='saveAll'>save</a>
-		</div>
-		<div class='h-stack'>
+		<!-- </div>
+		<div class='h-stack'> -->
+			<a on-tap='types'>types</a>
 			<a on-tap='pure'>pure</a>
 			<a on-tap='long'>long</a>
-		</div>
-	</aside>
+		<!-- </div> -->
+	</header>
+	<style id='style'></style>
 	<main></main>`;
 let STYLE = document.createElement('style');
 STYLE.appendChild(document.createTextNode(`:host {
 		display: inline-block;
 		background: #333;
+		/* tab-size: 4; */
+		/* -moz-tab-size: 4; */
 		font-size: 14px;
 		text-align: left;
 		color: white;
 		font-family: "Lucida Console", Monaco, monospace;
 		/* padding: .3rem; */
+		scrollbar-color: #444 #333;
+		scrollbar-width: thin;
 	}
 	:host(.scroll) {
 		overflow: auto;
 		width: 100%;
 		height: 100%;
-	}
-	:host(:not(.copy)) aside [on-tap='copyAll'] {
-		color: transparent;
-		/* display: none */
-	}
-	:host(:not(.save)) aside [on-tap='saveAll'] {
-		color: transparent;
-		/* display: none */
 	}
 	:host::-webkit-scrollbar {
 		width: .5rem;
@@ -65,14 +63,23 @@ STYLE.appendChild(document.createTextNode(`:host {
 	:host::-webkit-scrollbar-thumb {
 		background-color: #444;
 	}
+	:host(:not(.copy)) header [on-tap='copyAll'] {
+		color: transparent;
+		/* display: none */
+	}
+	:host(:not(.save)) header [on-tap='saveAll'] {
+		color: transparent;
+		/* display: none */
+	}
+	kv{margin-left:1rem;}
 	.h-stack {
 		display: flex;
 		justify-content: space-between;
 	}
-	aside div {
+	header div {
 		width: 20%;
 	}
-	aside a {
+	header a {
 		color: gray;
 		padding-bottom: .5rem;
 	}
@@ -80,38 +87,51 @@ STYLE.appendChild(document.createTextNode(`:host {
 		cursor: pointer;
 		color: cornflowerblue
 	}
-	:host(:not(.compact)) .short>item {
-		display: block;
-	}
-	:host(.compact) .short>item {
-		margin: 0 .5em;
-		/* margin-left: 1em; */
-	}
-	.long>item {
-		display: block;
-	}
-	*::before,
-	*::after {
-		color: silver;
-	}
-	item {
-		margin-left: 1rem;
-	}
-	key {
-		color: white;
-		/* font-weight: bold; */
-	}
 	c {
 		color: gray;
-		display: inline-block;
+		/* display: none; */
 	}
-	.string {
+	:host(.pure) c {
+		display: none;
+	}
+	:host(.pure) close {
+		display: none;
+	}
+	.xxxxx {
+		margin-left: -1rem;
+	}
+	.xxxxx>open,
+	.xxxxx>close {
+		display: none;
+	}
+	block {
+		display: block;
+		margin-left: 1rem;
+	}
+	block:hover>*>name {
+		cursor: pointer;
+		color: red;
+	}
+	:host(.long) kv {
+		display: block;
+	}
+	key {
+		color: silver
+	}
+	:host(.pure) key {
+		margin-right: .5rem;
+	}
+	kv:hover>key {
+		cursor: pointer;
+		color: red;
+	}
+	kv>value:hover {
+		cursor: pointer;
+		background: #444;
+	}
+	value {
+		/* default value color */
 		color: #ff7;
-		/* color: hsla(60,80%,80%,90%) */
-	}
-	.null,
-	.undefined {
-		color: silver;
 	}
 	.boolean.false {
 		color: #f77;
@@ -119,8 +139,18 @@ STYLE.appendChild(document.createTextNode(`:host {
 	.boolean.true {
 		color: #7f7;
 	}
-	.number {
+	.number,
+	.int,
+	.real {
 		color: #7ff;
+	}
+	.time,
+	.date,
+	.datetime {
+		color: #f7f;
+	}
+	.url,.email{
+		color: #99f
 	}`));
 function QQ(query, i) {
 	let result = Array.from(this.querySelectorAll(query));
@@ -178,45 +208,83 @@ class WebTag extends HTMLElement {
 			HTML = new DOMParser().parseFromString(HTML, 'text/html').firstChild
 		this.$view.appendChild(HTML);
 	}
+	$event(name, options) {
+		this.dispatchEvent(new CustomEvent(name, {
+			bubbles: true,
+			composed: true,
+			cancelable: true,
+			detail: options
+		}));
+	}
 };
-	class json_view extends WebTag {
+	class hi_lite extends WebTag {
 		$onReady() {
-			this.show()
+			this.setData()
+			this.$view.Q('main', 1).addEventListener('click', e => this.click(e))
+			if (this.classList.contains('noti'))
+				import('https://max.pub/lib/notify.js')
 		}
 		$onDataChange() {
-			this.show()
+			this.setData()
 		}
-		show() {
-			try {
-				this.$view.Q('main', 1).innerHTML = this.html(JSON.parse(this.textContent));
-			} catch { }
+		setData() {
+			if (!this.innerHTML.trim()) return;
+			this.value = this.innerHTML;
 		}
-		copy() {
-			import('https://max.pub/lib/data.js').then(x => x.copy(this.textContent))
+		set value(v) {
+			this._value = v;
+			this.render();
 		}
-		save() {
-			import('https://max.pub/lib/data.js').then(x => x.save(this.textContent, 'data.json', 'application/json'))
+		get value() {
+			return this._value
 		}
-		html(data, level = 0) {
-			let typ = typeof (data);
-			if (Array.isArray(data)) typ = 'array';
-			if (data === null) typ = 'null';
-			let q = '<c>"</c>';
-			let len = JSON.stringify(data).length;
-			switch (typ) {
-				case 'object':
-				case 'array':
-					let c1 = typ == 'object' ? q : '';
-					let keys = Object.keys(data)
-					return `<list class='${typ} ${len < 50 ? 'short' : 'long'}'>
-						<c>${typ=='object'?'{':'['}</c>
-						${keys.map((key, i) => `<item level='${level}'>${typ == 'object' ? `${c1}<key>${key}</key>${c1}<c>:</c>` : ''}${this.html(data[key], level + 1)}${i < keys.length-1 ? '<c>,</c>' : ''}</item>`).join('')}
-						<c>${typ=='object'?'}':']'}</c>
-						</list>`;
-				default:
-					let c = typ == 'string' ? q : '';
-					return c + `<value class='${typ} ${data}'>${data}</value>` + c;
+		async render() {
+			let mod = {}
+			if (this.classList.contains('json'))
+				mod = await import('../json.js')
+			if (this.classList.contains('xml'))
+				mod = await import('../xml.js')
+			console.log('mod',mod)
+			if (!mod.converter) return;
+			this.$view.Q('#style', 1).textContent = mod.style;
+			this.$view.Q('main', 1).innerHTML = ''
+			this.$view.Q('main', 1).ADD(mod.converter(this.value))
+			if (this.classList.contains('types')) {
+				let type = (await import('https://max.pub/lib/types.js')).default;//.then(x => {console.log(x.default);this.type = x.default})
+				for (let value of this.$view.Q('value')) {
+					value.classList.add(type(value.textContent))
+				}
 			}
 		}
+		pure() { this.classList.toggle('pure') }
+		long() { this.classList.toggle('long') }
+		copy(text) {
+			import('https://max.pub/lib/data.js').then(x => x.copy(text))
+			this.$event('notification', { text: 'copied to clipboard' })
+			return text;
+		}
+		save(text) {
+			import('https://max.pub/lib/data.js').then(x => x.save(text, 'data.xml', 'text/xml'))
+			this.$event('notification', { text: 'download initiated' })
+		}
+		copyAll() {
+			this.copy(this.text);
+		}
+		saveAll() {
+			this.save(this.text);
+		}
+		copyPart(node) {
+			console.log('part', node.tagName, node.textContent)
+			switch (node.tagName) {
+				case 'TEXT': return this.copy(node.textContent);
+				case 'VALUE': return this.copy(node.textContent);
+				case 'KEY': return this.copy(node.parentNode.textContent);
+				case 'TAG': return this.copy(node.textContent);
+			}
+		}
+		click(event) {
+			console.log('click', event.target)
+			console.log('copied', this.copyPart(event.target))
+		}
 	}
-window.customElements.define('json-view', json_view)
+window.customElements.define('hi-lite', hi_lite)
